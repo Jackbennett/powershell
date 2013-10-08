@@ -138,7 +138,7 @@ function Get-Application
     }
     Process
     {
-        Write-Verbose "Get all applications named `"$name`" on computer: $computerName"
+        Write-Verbose "Get all applications on computer: $computerName"
 
         # Get everythign installed on the target machine. Don't bother filtering because you must use WQL
         $app = Get-WmiObject -class Win32_Product `
@@ -168,12 +168,12 @@ function Get-Application
         #Here is where we filter on the provided name if any.
         if($name)
         {
+            Write-Verbose "Now filtering out everything that doesn't match '$name'"
             $app = $app | where {$_.name -Match $name}
         }
     }
     End
     {
-        Write-Verbose "Make a table to reference"
         $app
     }
 }
