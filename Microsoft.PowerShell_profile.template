@@ -1,0 +1,1 @@
+New-PSDrive -Name psStore -PSProvider FileSystem -Root \\uhserver1\psstore -Description "Powershell script and module store" > $null
