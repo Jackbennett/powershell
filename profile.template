@@ -1,0 +1,3 @@
+. \\uhserver1\psstore\setup.ps1 > $null
+
+write-output "Hello, Dave."
