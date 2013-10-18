@@ -27,7 +27,7 @@ if ($copyProfile)
     else
     {
         new-item (split-path $profile.CurrentUserAllHosts) -ItemType Directory 
-        Copy-Item "$DriveName1`:\profile.template" $profile.CurrentUserAllHosts
+        Copy-Item "$DriveName`:\profile.template" $profile.CurrentUserAllHosts
     }
 }
 
