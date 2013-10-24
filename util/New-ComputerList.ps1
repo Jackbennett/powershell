@@ -19,24 +19,49 @@ function new-computerList
     [CmdletBinding()]
     Param
     (
-        # Param1 help description
+        # Room number
         [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Param1,
+        [string[]]
+        $Room
 
-        # Param2 help description
-        [int]
-        $Param2
+        , # Start PC number, default is 1. leading zero is unnecessary
+        [Parameter(ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int[]]
+        $Range = 1
+
     )
 
     Begin
     {
+        # Create a list to add computer names to
+        $computerName = New-Object Collections.Generic.List[string]
     }
+
     Process
     {
+        # We need to build the string ROOM-COMPUTER
+        
+        #So for each room we've been given
+        foreach($r in $room){
+
+            #Make a computer for each of the ranges specified
+            foreach($c in $range){
+
+                #Add this string to our list of computernames with a fully qualified domain name
+                $computerName.Add("$r-$($c.toString('00')).upholland.lancsngfl.ac.uk")
+            }
+        }
     }
+
     End
     {
+        # Return the list of computer names to the pipeline
+        Write-Verbose "Returning to the pipeline with: $computername"
+
+        return $computerName
     }
 }
