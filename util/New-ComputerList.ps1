@@ -79,6 +79,8 @@ function new-computerList
         # Return the list of computer names to the pipeline
         Write-Verbose "Returning the list to pipeline"
 
-        return $computerName
+        $obj = new-object -TypeName psobject | Add-Member -MemberType NoteProperty -Name "computerName" -Value $computerName
+
+        return $obj
     }
 }
