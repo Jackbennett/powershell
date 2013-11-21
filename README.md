@@ -1,4 +1,4 @@
-﻿# Powershell scripts development repository
+﻿# Powershell scripts development
 
 # What is this?
 
