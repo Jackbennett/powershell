@@ -1,8 +1,11 @@
 ﻿<#
 .Synopsis
-   Print a line of whatever data comes int he Serial Port. Read Only
+   Print a line of whatever data comes in the Serial Port. Read Only.
 .DESCRIPTION
-   Echo all incoming data on the serial port. I want to wrap this with node and use this as a dev module instead of installing VS 2013 to just compile nodeserialport
+   Echo all incoming data on the serial port.
+   
+   I want to wrap this with node and use this as a dev module instead of 
+   installing VS 2013 to just compile nodeserialport
 #>
 function Get-SerialPort
 {
@@ -54,7 +57,7 @@ function Get-SerialPort
         } finally {
             # Stop Listening to data
             $port.Close();
-            # Dispose of the object and free the resources just to be sure it's safely unbound for sucessive runs of the script
+            # Free the resources just to be sure it's safely unbound for sucessive runs of the script
             $port.Dispose();
             # Dispose of the event handler to make sure we're all clean
             Unregister-Event $identifier
