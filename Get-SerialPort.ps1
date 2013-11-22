@@ -25,6 +25,7 @@ function Get-SerialPort
     }
     Process
     {
+        # Print data only when recieved, No polling the port that's crazy talk.
         $job = Register-ObjectEvent `
                 -InputObject $port `
                 -EventName "DataReceived" `
@@ -34,8 +35,10 @@ function Get-SerialPort
                     $Script:counter += 1
 
                     Write-Host "Event count: $counter"
+                    # Dump the entire buffer
                     write-host $sender.ReadExisting()
 
+                    # Debug counter to stop spewing 400+ events while I close the hung process and burn my lap.
                     if($counter -ge $event.messageData)
                     {
                         Write-Host "Remove Event:" $event.SourceIdentifier
@@ -46,9 +49,14 @@ function Get-SerialPort
         try
         {
             Wait-Event $identifier
+            # At this point I think we wait forever as we've unbound the event after 5 mesages.
+            # I cannot cancel the process with ctrl-c. - Not desired
         } finally {
+            # Stop Listening to data
             $port.Close();
+            # Dispose of the object and free the resources just to be sure it's safely unbound for sucessive runs of the script
             $port.Dispose();
+            # Dispose of the event handler to make sure we're all clean
             Unregister-Event $identifier
         }
     }
