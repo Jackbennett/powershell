@@ -22,9 +22,9 @@ function Get-SerialPort
 
     Begin
     {
-        $port = New-Object system.io.ports.serialport COM3,9600,none,8,one;
-        $port.ReadTimeout = 4000; # 4 seconds
-        $port.open();
+        $port = New-Object system.io.ports.serialport COM3,9600,none,8,one
+        $port.ReadTimeout = 4000 # 4 seconds
+        $port.open()
     }
     Process
     {
@@ -56,9 +56,9 @@ function Get-SerialPort
             # I cannot cancel the process with ctrl-c. - Not desired
         } finally {
             # Stop Listening to data
-            $port.Close();
+            $port.Close()
             # Free the resources just to be sure it's safely unbound for sucessive runs of the script
-            $port.Dispose();
+            $port.Dispose()
             # Dispose of the event handler to make sure we're all clean
             Unregister-Event $identifier
         }
