@@ -94,6 +94,14 @@ function Show-SerialPort
         [System.IO.Ports.SerialPort]
         $port
     )
+# Q. wat? new-serialport -outvariable p 
+# Show-SerialPort : Cannot process argument transformation on parameter 'port'. Cannot convert the "System.Collections.ArrayList" value of type "System.Collections.ArrayList" to type "System.IO.Ports.SerialPort".
+# At line:1 char:23
+# + Show-SerialPort -port $p
+# +                       ~~
+# + CategoryInfo          : InvalidData: (:) [Show-SerialPort], ParameterBindingArgumentTransformationException
+# + FullyQualifiedErrorId : ParameterArgumentTransformationError,Show-SerialPort
+
 
     Write-Verbose "Open port for reading"
     Write-verbose ("Is prot open? " + $port.isOpen)
