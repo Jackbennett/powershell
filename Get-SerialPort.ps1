@@ -29,7 +29,7 @@ function New-SerialPort
         [String]
         $name = "COM3"
 
-
+     # Q. Can I force the cmdletBindings() -outvariable to be set?
      # This does not work, Didn't think it would
      #   , # Force precence of outVaraible
      #   [Parameter(Mandatory=$true)]
@@ -37,35 +37,32 @@ function New-SerialPort
     )
     $error.Clear()
 
+    # Q. How can I get if there's already an existing instance and not do this?
     $port = InstancePort -Name $name
 
     # Print data only when recieved, No polling the port that's crazy talk.
     $obj = Register-ObjectEvent `
             -InputObject $port `
             -EventName "DataReceived" `
-            -SourceIdentifier $port.identifier
+            -SourceIdentifier $port.identifier `
+            -ErrorAction stop
 
-    try
+    if(-not $error)
     {
-        $port.open()
-    } catch {
+        Write-Output -InputObject $port
+    } else {
         Unregister-Event $port.identifier
-
         foreach($e in $error.ToArray())
         {
             Write-Error $e
         }
-    }
-    if(-not $error)
-    {
-        Write-Output -InputObject [System.IO.Ports.SerialPort]$port
     }
 }
 
 function Get-SerialPort
 {
     [CmdletBinding()]
-    [OutputType([PSObject])]
+    [OutputType([System.IO.Ports.SerialPort])]
     Param
     (
         # Return this port object
@@ -73,6 +70,8 @@ function Get-SerialPort
         [string]
         $port
     )
+
+    # Q. Same Q as in New-SerialPort, can I fetch an existing instance if new-... has already been run?
 
     if($port)
     {
@@ -97,16 +96,19 @@ function Show-SerialPort
     )
 
     Write-Verbose "Open port for reading"
-    $port.open()
+    Write-verbose ("Is prot open? " + $port.isOpen)
+    if( -not $port.isOpen) { $port.open() }
 
     Write-Verbose "Waiting on data"
+    Write-Output $port | gm
+
     Wait-Event $port.identifier -Timeout ($port.ReadTimeout/1000)
 
-    # How do I catch this?
+    # Q. How do I catch the difference in this?
     "data or timeout?"
 
     # Why does this just loop the same event output 
-    Write-Host ($port.ReadExisting())
+    Write-Output ($port.ReadExisting())
 
     Show-SerialPort($port)
 }
@@ -117,14 +119,15 @@ function Remove-SerialPort
     [OutputType([PSObject])]
     Param
     (
-        # Event Identifier
-        [Parameter(Mandatory=$true,
+        # Serial port reference
+        [Parameter(Position=0,
+                   Mandatory=$true,
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true)]
-        [PSObject]
+        [System.IO.Ports.SerialPort]
         $port
 
-        , # Remove events too
+        , # Remove all events in log
         [switch]
         $clean
     )
@@ -132,19 +135,23 @@ function Remove-SerialPort
     "Clean up connections"
     # Stop Listening to data
 
+    Write-host $port.isOpen
     $port.Close()
     # Free the resources just to be sure it's safely unbound for sucessive runs of the script
     $port.Dispose()
     # Dispose of the event handler to make sure we're all clean
-    Unregister-Event $port.identifier
+    Unregister-Event $port.identifier -ErrorAction SilentlyContinue
 
     switch ($clean)
     {
         $true {
-            Remove-Event -SourceIdentifier $port.identifier
+            Remove-Event -SourceIdentifier $port.identifier -ErrorAction SilentlyContinue
         }
         Default {}
     }
+    Write-Output "Event count: " (get-event | measure | select count)
+    Write-Output "Subscribers: " (Get-EventSubscriber | select SourceIdentifier)
+
 }
 
 function instancePort()
