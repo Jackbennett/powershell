@@ -17,6 +17,7 @@
 function new-computerList
 {
     [CmdletBinding()]
+    [OutputType([System.Collections.Generic.List[string]])]
     Param
     (
         # Room number
@@ -43,9 +44,11 @@ function new-computerList
         # Create a list to add computer names to
         $computerName = New-Object System.Collections.Generic.List[string]
 
-        #What's the fully qualified domain name in case we need it
-            $domain = [ADSI]"LDAP://RootDSE"
-        $domain = $domain.rootDomainNamingcontext -replace ",?DC=", "."
+        if($FQDN){
+            #What's the fully qualified domain name in case we need it
+                $domain = [ADSI]"LDAP://RootDSE"
+            $domain = $domain.rootDomainNamingcontext -replace ",?DC=", "."
+        }
     }
 
     Process
@@ -77,10 +80,8 @@ function new-computerList
     End
     {
         # Return the list of computer names to the pipeline
-        Write-Verbose "Returning the list to pipeline"
+        Write-Verbose "Returning the list to pipeline output"
 
-        $obj = new-object -TypeName psobject | Add-Member -MemberType NoteProperty -Name "computerName" -Value $computerName
-
-        return $obj
+        Write-Output $computerName
     }
 }
