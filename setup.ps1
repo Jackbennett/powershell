@@ -8,14 +8,16 @@ Param(
 )
 
 
-# Add the network path to the shared powershell scripts as a drive for the current user
-New-PSDrive -Name $DriveName -PSProvider FileSystem -Root \\uhserver1\psstore -Description "Powershell script and module store"
-
-
 # Check to see if the above added drive is in the module path. If not, add it.
 if($env:PSModulePath -notmatch "$DriveName`:")
 {
     $env:PSModulePath += ";$DriveName`:\"
+    # Add the network path to the shared powershell scripts as a drive for the current user
+    New-PSDrive -Name $DriveName `
+        -PSProvider "FileSystem" `
+        -Root "\\uhserver1\psstore" `
+        -Persist `
+        -Description "Powershell script and module store"
 }
 
 if ($copyProfile)

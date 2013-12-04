@@ -17,6 +17,7 @@
 function new-computerList
 {
     [CmdletBinding()]
+    [OutputType([System.Collections.Generic.List[string]])]
     Param
     (
         # Room number
@@ -76,10 +77,8 @@ function new-computerList
     End
     {
         # Return the list of computer names to the pipeline
-        Write-Verbose "Returning the list to pipeline"
+        Write-Verbose "Returning the list to pipeline output"
 
-        $obj = new-object -TypeName psobject | Add-Member -MemberType NoteProperty -Name "computerName" -Value $computerName
-
-        return $obj
+        Write-Output $computerName
     }
 }
