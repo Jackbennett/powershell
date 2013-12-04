@@ -3,8 +3,8 @@ if (-not (test-path "$env:ProgramFiles\7-Zip\7z.exe")) {throw "$env:ProgramFiles
 set-alias sz "$env:ProgramFiles\7-Zip\7z.exe"
  
 # directories to use
-$base = '\\uhserver1\GlobalShared\'
-$zipdir = '\\TS-XLEB4\share\'
+$base = 'uhserver1\GlobalShared'
+$zipdir = 'TS-XLEB4\share\'
  
 # Zip-file name
 $name = split-path $base -leaf
@@ -15,7 +15,7 @@ $zipoption = ' -t7z "' + $zipfile + '"'
 $from = $base + "*.*"
  
 # Create zip-file
-write-host "from:" $from
-write-host "zipopt:" $zipoption
+write-host "from:\\" $from
+write-host "zipopt:\\" $zipoption
  
-sz a -r -t7z "$zipfile" $from
+sz a -r -t7z "\\$zipfile" "\\$from"
