@@ -7,7 +7,7 @@
    Pipeline output is an object with properties computerName
 
 .EXAMPLE
-   new-computerList -roomName 50 -range 8..11
+   new-computerList -roomName 50 -range (8..11)
 
    Output: 50-08, 50-09, 50-10, 50-11
 
@@ -44,8 +44,7 @@ function new-computerList
         $computerName = New-Object System.Collections.Generic.List[string]
 
         #What's the fully qualified domain name in case we need it
-            $domain = [ADSI]"LDAP://RootDSE"
-        $domain = $domain.rootDomainNamingcontext -replace ",?DC=", "."
+        $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().name
     }
 
     Process
