@@ -19,11 +19,14 @@ $computerName = @{
 }
 
 Get-WmiObject `
-    -class win32_logicaldisk `
+    -Class win32_logicaldisk `
     -ComputerName 26-19,25-16 `
+    -ErrorAction SilentlyContinue `
     |
     select `
         $computerName,
         deviceid,
         $FreeSpace,
-        $Size
+        $Size `
+    |
+    Write-Output
