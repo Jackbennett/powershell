@@ -1,0 +1,1 @@
+ls | ?{$_.PSIsContainer -eq $true} | ? {$_.getFiles().count -eq0 } | select @{name="Path";expression={$_.fullname}}
