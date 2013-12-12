@@ -1,0 +1,107 @@
+﻿$mapError = $true
+$Store = 'ps'
+
+$v = measure-command {
+    try
+    {
+        Get-PSDrive $Store -ErrorAction stop
+    }
+    catch [System.Exception]
+    {
+        Write-warning "adding the store: $Store"
+        # Add the network path to the shared powershell scripts as a drive for the current user
+        New-PSDrive -Name $Store `
+            -PSProvider "FileSystem" `
+            -Root "f:\src\ps" `
+            -Description "Powershell script and module store" `
+            -ErrorVariable mapError
+    }
+    catch
+    {
+        Write-warning 'No Fault'
+    }
+}
+
+Write-warning "$($v.TotalSeconds) seconds - Detecting store drive"
+
+$v = measure-command {
+    write-warning "path Before: $mapError"
+    $env:PSModulePath.split(';') | % {write-host $PSItem}
+    # Check to see if the above added drive is in the module path. If not, add it.
+    if($env:PSModulePath -notmatch "$Store`:")
+    {
+        Write-warning "no store found"
+        $env:PSModulePath = $env:PSModulePath.Insert(0, "$Store`:\;")
+    }
+
+    write-warning "path after:"
+    $env:PSModulePath.split(';') | % {write-host $PSItem}
+
+}
+
+
+Write-warning "$($v.TotalSeconds) seconds - add store to path"
+
+function add-modules{
+    # Exclude utils it's really slow
+    Get-ChildItem "$Store`:\" -Directory | ForEach {
+        write-host $PSItem.name
+        $v = measure-command {
+            import-module $psItem.Name
+        }
+
+        Write-warning "$($v.TotalSeconds) seconds - $($PSItem.Name)"
+    }
+}
+
+function get-list{
+	get-childitem $args | format-wide -property Name -autosize
+}
+
+function new-directory{
+	new-item -type directory -name $args[0]
+	Set-Location $args[0]
+}
+
+function git-bash{
+    [string]$string = "$env:ProgramFiles\git\bin\sh.exe --login"
+    Invoke-Expression $string
+}
+
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function global:prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    # Reset color, which can be messed up by Enable-GitColors
+    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+
+    Write-Host($pwd.ProviderPath) -nonewline
+
+    Write-VcsStatus
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    [System.Environment]::NewLine + "$env:USERNAME λ "
+}
+
+function Backup-Profile {
+    Copy-Item `
+        -Path $profile.CurrentUserAllHosts `
+        -Destination "$Store`:\profile.$($env:USERNAME).template" `
+        -Force
+}
+
+add-modules
+
+Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
+Set-Alias sh git-bash
+Set-Alias lsa get-list
+Set-Alias new new-directory
+Set-Alias g git
+
+$DomainHome = "\\uhserver1\homestaff\home\j.bennett"
+
+Enable-GitColors
+# Start-SshAgent -Quiet
+Set-Location f:/src
+Clear-Host
+lsa
