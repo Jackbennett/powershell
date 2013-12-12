@@ -16,7 +16,6 @@ if($env:PSModulePath -notmatch "$DriveName`:")
     New-PSDrive -Name $DriveName `
         -PSProvider "FileSystem" `
         -Root "\\uhserver1\psstore" `
-        -Persist `
         -Description "Powershell script and module store"
 }
 
