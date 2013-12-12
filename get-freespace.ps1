@@ -1,12 +1,12 @@
 $FreeSpace = @{
-    name="FreeSpace/gb"
+    name="FreeSpace (GB)"
     expression={
         [Math]::Round($_.freeSpace/1gb, 2)
     }
 }
 
 $Size = @{
-    name="Size/gb"
+    name="Size (GB)"
     expression={
         [Math]::Round($_.Size/1gb, 2)
     }
