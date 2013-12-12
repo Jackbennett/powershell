@@ -1,11 +1,14 @@
 
 Param(
     # What name would you prefer the drive to be mapped under.
-    [string]$DriveName = "psStore"
+    [string]$DriveName = "ps"
 
     , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
     [switch]$copyProfile
 )
+
+#cleanup old ps store name
+$env:PSModulePath = $env:PSModulePath -replace ";?psStore:\\"
 
 
 # Check to see if the above added drive is in the module path. If not, add it.
