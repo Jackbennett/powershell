@@ -1,5 +1,11 @@
-﻿$mapError = $true
-$Store = 'ps'
+﻿[cmdletBinding()]
+Param(
+    # What name would you prefer the drive to be mapped under.
+    [string]$Store = "ps"
+
+    , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
+    [switch]$copyProfile
+)
 
 $v = measure-command {
     try
@@ -12,9 +18,8 @@ $v = measure-command {
         # Add the network path to the shared powershell scripts as a drive for the current user
         New-PSDrive -Name $Store `
             -PSProvider "FileSystem" `
-            -Root "f:\src\ps" `
-            -Description "Powershell script and module store" `
-            -ErrorVariable mapError
+            -Root "\\uhhs\psstore" `
+            -Description "Powershell script and module store"
     }
     catch
     {
@@ -25,7 +30,7 @@ $v = measure-command {
 Write-warning "$($v.TotalSeconds) seconds - Detecting store drive"
 
 $v = measure-command {
-    write-warning "path Before: $mapError"
+    write-warning "path Before:"
     $env:PSModulePath.split(';') | % {write-host $PSItem}
     # Check to see if the above added drive is in the module path. If not, add it.
     if($env:PSModulePath -notmatch "$Store`:")
@@ -43,7 +48,6 @@ $v = measure-command {
 Write-warning "$($v.TotalSeconds) seconds - add store to path"
 
 function add-modules{
-    # Exclude utils it's really slow
     Get-ChildItem "$Store`:\" -Directory | ForEach {
         write-host $PSItem.name
         $v = measure-command {
@@ -90,6 +94,7 @@ function Backup-Profile {
         -Force
 }
 
+# Might not need to do this
 add-modules
 
 Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
@@ -102,6 +107,6 @@ $DomainHome = "\\uhserver1\homestaff\home\j.bennett"
 
 Enable-GitColors
 # Start-SshAgent -Quiet
-Set-Location f:/src
+Set-Location "$HOME\src"
 Clear-Host
 lsa
