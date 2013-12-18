@@ -18,7 +18,7 @@ $v = measure-command {
         # Add the network path to the shared powershell scripts as a drive for the current user
         New-PSDrive -Name $Store `
             -PSProvider "FileSystem" `
-            -Root "f:\src\ps" `
+            -Root "\\uhhs\psStore" `
             -Description "Powershell script and module store"
     }
     catch
@@ -48,7 +48,6 @@ $v = measure-command {
 Write-verbose "$($v.TotalSeconds) seconds - add store to path"
 
 function add-modules{
-    # Exclude utils it's really slow
     Get-ChildItem "$Store`:\" -Directory | ForEach {
         write-host $PSItem.name
         $v = measure-command {
