@@ -56,6 +56,8 @@ function Get-Memory
                 $Capacity,
                 DeviceLocator `
                 |
+                where { $_.DeviceLocator -notmatch "SYSTEM ROM" } `
+                |
                 Write-Output
     }
 }
