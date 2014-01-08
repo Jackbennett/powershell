@@ -37,15 +37,15 @@ $v = measure-command {
     Write-Verbose "path Before:"
     $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
     # Check to see if the above added drive is in the module path. If not, add it.
-    if($env:PSModulePath -notmatch "$Store`:")
+    if($env:PSModulePath.Contains("$Store`:"))
     {
-        Write-Verbose "no store found"
+        Write-Verbose "Store exists"
+    } else {
+        Write-Verbose "Store not found"
         $env:PSModulePath = $env:PSModulePath.Insert(0, "$Store`:\;")
+        Write-Verbose "path after:"
+        $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
     }
-
-    Write-Verbose "path after:"
-    $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
-
 }
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
