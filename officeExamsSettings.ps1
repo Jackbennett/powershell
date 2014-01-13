@@ -1,4 +1,5 @@
-﻿
+﻿$office = "word","publisher","powerpoint","excel"
+
 function Set-OfficeRestrictions
 {
     $word = New-Object -ComObject word.application
