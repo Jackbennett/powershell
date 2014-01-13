@@ -90,16 +90,10 @@ function Get-Application
                 Here we're going to add and ID field so you can pipe the output to a table
                 and see what $obj[<number>] the application is to remove.
             #>
-            $app = $app |
-                foreach-object -Begin{
-                    $counter = 0
-                } `
-                -Process {
-                    $psItem |
-                        Add-Member -Name ID -Value $counter -MemberType NoteProperty -PassThru
-
-                    ++$counter
-                }
+            for ($i = 1; $i -lt $app.count(); $i++)
+            {
+                $app[$i] | Add-Member -Name ID -Value $i -MemberType NoteProperty -PassThru
+            }
 
             #Here is where we filter on the provided name if any.
             if($name)
