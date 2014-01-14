@@ -1,10 +1,4 @@
-﻿<#
-    test if users is in security group "exams"
-        set resrictions
-        remove restrictions
-#>
-
-# Options only seem to exist for Word.
+﻿# Options only seem to exist for Word.
 [string[]]$Options = @(
     'checkSpellingAsYouType',
     'checkGrammarAsYouType',
@@ -15,6 +9,17 @@
     'ShowSpellingErrors',
     'ShowGrammaticalErrors'
 )
+
+$id = [Security.Principal.WindowsIdentity]::GetCurrent()
+$groups = $id.Groups | ForEach-Object {
+    $_.Translate([Security.Principal.NTAccount])
+}
+
+if ($groups -contains "08105CURRIC\Exams") {
+    Set-OfficeRestrictions
+} else {
+    Remove-OfficeRestrictions
+}
 
 function Set-OfficeRestrictions
 {
