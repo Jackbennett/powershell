@@ -1,33 +1,108 @@
-﻿$office = "word","publisher","powerpoint","excel"
+﻿<#
+    test if users is in security group "exams"
+        set resrictions
+        remove restrictions
+#>
+
+# Options only seem to exist for Word.
+[string[]]$Options = @(
+    'checkSpellingAsYouType',
+    'checkGrammarAsYouType',
+    'SuggestSpellingCorrections',
+    'ContextualSpeller'
+)
+[string[]]$ActiveDocument = @(
+    'ShowSpellingErrors',
+    'ShowGrammaticalErrors'
+)
 
 function Set-OfficeRestrictions
 {
-    $word = New-Object -ComObject word.application
+    Begin
+    {
+        # Detect if word is already open
+        try
+        {
+            $open = Get-Process -Name winword -ErrorAction Stop
+        }
+        catch
+        {
+            $open = $false
+        }
 
-    $options = @{
-        'checkSpellingAsYouType' = $false;
-        'checkGrammarAsYouType' = $false;
-        'SuggestSpellingCorrections' = $false;
-        'ContextualSpeller' = $false;
+        $Word = New-Object -ComObject word.application
     }
 
-    $options.keys | foreach{ $word.options.($_) = $myoptions.($_) }
+    Process
+    {
+        $Options | ForEach-Object{
+            $Word.Options.($_) = $false
+        }
+        
+        if($Word.ActiveDocument)
+        {
+            $ActiveDocument | ForEach-Object{
+                $Word.ActiveDocument.($_) = $false
+            }
+        }
+    }
 
-    $word.quit()
+    End
+    {
+        # Close Word if not already open
+        if( -not $open)
+        {
+            $Word.Quit()
+            # To release the ComObject, <object>.Quit() must have been run
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word) > $null
+        }
+
+        Remove-Variable Word
+    }
 }
 
 function Remove-OfficeRestrictions
 {
-    $word = New-Object -ComObject word.application
+    Begin
+    {
+        # Detect if word is already open
+        try
+        {
+            $open = Get-Process -Name winword -ErrorAction Stop
+        }
+        catch
+        {
+            $open = $false
+        }
 
-    $options = @{
-        'checkSpellingAsYouType' = $true;
-        'checkGrammarAsYouType' = $true;
-        'SuggestSpellingCorrections' = $true;
-        'ContextualSpeller' = $true;
+        $Word = New-Object -ComObject word.application
     }
 
-    $options.keys | foreach{ $word.options.($_) = $myoptions.($_) }
+    Process
+    {
+        $Options | ForEach-Object{
+            $Word.Options.($_) = $true
+        }
+        
 
-    $word.quit()
+        if($Word.ActiveDocument)
+        {
+            $ActiveDocument | ForEach-Object{
+                $Word.ActiveDocument.($_) = $true
+            }
+        }
+    }
+
+    End
+    {
+        # Close Word if not already open
+        if( -not $open)
+        {
+            $Word.Quit()
+            # To release the ComObject, <object>.Quit() must have been run
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word) > $null
+        }
+
+        Remove-Variable Word
+    }
 }
