@@ -55,3 +55,5 @@ function Remove-OfficeRestrictions
         Remove-Variable Word
     }
 }
+
+Remove-OfficeRestrictions
