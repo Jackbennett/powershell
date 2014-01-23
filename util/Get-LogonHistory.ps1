@@ -82,9 +82,9 @@ function Get-LogonHistory
                             Id=4624;
                             StartTime=$StartDay;
                             EndTime=$StopDay
-                        } -ErrorVariable e -ErrorAction Stop
+                        } -ErrorAction Stop
         } catch {
-            Write-Error $e
+            Write-Error "$ComputerName cannot be found"
         }
 
         Write-Verbose "Got $($EventLog.count) event(s)"
