@@ -24,37 +24,28 @@
 #>
 function Get-LogonHistory
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Default')]
     Param
     (
-# Tried postion=0 and 1
-#Get-LogonHistory : Parameter set cannot be resolved using the specified named parameters.
-#At line:1 char:1
-#+ Get-LogonHistory '15-31'
-#+ ~~~~~~~~~~~~~~~~~~~~~~~~
-#    + CategoryInfo          : InvalidArgument: (:) [Get-LogonHistory], ParameterBindingException
-#    + FullyQualifiedErrorId : AmbiguousParameterSet,Get-LogonHistory
-#
-
         # Target computer name
-        [Parameter(Position=1,
+        [Parameter(Position=0,
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true)]
         [string]
         $ComputerName = 'localhost'
 
         , # How many days before today should I search. By default get yesterdays records
-        [Parameter(ParameterSetName='Default')]
+        [Parameter(ParameterSetName='History', position=1)]
         [int]
         $PastDays = 1
 
         , # How many days logons would you like to See
-        [Parameter(ParameterSetName='Default')]
+        [Parameter(ParameterSetName='History', position=2)]
         [int]
         $Days = 1
 
         , # Just get todays records
-        [Parameter(ParameterSetName='Today')]
+        [Parameter(ParameterSetName='Default')]
         [switch]
         $Today
     )
