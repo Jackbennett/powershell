@@ -5,7 +5,8 @@
    Show interactive user logon history of the users on a target computer from the Security log.
 
    CREDITS
-    Origonally from freenode#powershell IRC User redyey
+    .NET XML event message parsing from freenode#powershell IRC User redyey
+    Parameter names and .NET object refactoring from freenode#powershell IRC User Jaykul
 .EXAMPLE
    Get-LogonHistory 15-31
    Returns the User Name, Firstname, Surename, Logon time, logoff time
@@ -21,6 +22,8 @@
    Logon Types: Interactive = 2; Network = 3; Batch = 4; Service = 5; Unlock = 7;
       NetworkCleartext = 8; NewCredentials = 9; RemoteInteractive = 10; CachedInteractive = 11 
       [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
+   Getting details from event logs:
+   [ref]http://blogs.technet.com/b/ashleymcglone/archive/2013/08/28/powershell-get-winevent-xml-madness-getting-details-from-event-logs.aspx
 #>
 function Get-LogonHistory
 {
@@ -85,12 +88,12 @@ function Get-LogonHistory
             # ...   into properties on the event object to return.
         ForEach ($Event in $EventLog) {
 
-            $xml = [xml]$Event.ToXml()
+            $xml = [xml]$Event.ToXml().Event.EventData
 
-            For ($i=0; $i -lt $xml.Event.EventData.Data.Count; $i++)
+            ForEach ($data in $xml.Data)
             {
                 $Event |
-                    Add-Member -Force -NotePropertyName $xml.Event.EventData.Data[$i].name -NotePropertyValue $xml.Event.EventData.Data[$i].'#text'
+                    Add-Member -Force -NotePropertyName $data.name -NotePropertyValue $data.'#text'
             }
         }
 
