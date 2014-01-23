@@ -95,8 +95,20 @@ function Get-LogonHistory
         }
 
         $EventLog |
-            Where-Object { $_.logonType -eq 2 } |
-            Select-Object @{n='User Name';e={$_.TargetUserName}},@{n='Logon Time';e={$_.TimeCreated}},@{n='Computer';e={$_.SubjectUserName}}
+            Where-Object {
+                # logon type 2 is an 'Interactive' session, i.e. a real user at the keyboard
+                $_.logonType -eq 2
+            } |
+            Select-Object @{
+                    name='User Name';
+                    expression={ $_.TargetUserName }
+                },@{
+                    name='Logon Time';
+                    expression={ $_.TimeCreated }
+                },@{
+                    name='Computer';
+                    expression={ $_.SubjectUserName }
+                }
     }
     End
     {
