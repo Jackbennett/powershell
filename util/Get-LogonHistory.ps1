@@ -4,8 +4,8 @@
 .DESCRIPTION
    Show interactive user logon history of the users on a target computer from the Security log.
 
-   CREDIT
-    Origonally from freenode#powershell IRC User ..?..
+   CREDITS
+    Origonally from freenode#powershell IRC User redyey
 .EXAMPLE
    Get-LogonHistory 15-31
    Returns the User Name, Firstname, Surename, Logon time, logoff time
@@ -21,18 +21,25 @@
    Logon Types: Interactive = 2; Network = 3; Batch = 4; Service = 5; Unlock = 7;
       NetworkCleartext = 8; NewCredentials = 9; RemoteInteractive = 10; CachedInteractive = 11 
       [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
-CREDIT
-    Origonally from freenode#powershell IRC User ..?..
 #>
 function Get-LogonHistory
 {
     [CmdletBinding()]
     Param
     (
+# Tried postion=0 and 1
+#Get-LogonHistory : Parameter set cannot be resolved using the specified named parameters.
+#At line:1 char:1
+#+ Get-LogonHistory '15-31'
+#+ ~~~~~~~~~~~~~~~~~~~~~~~~
+#    + CategoryInfo          : InvalidArgument: (:) [Get-LogonHistory], ParameterBindingException
+#    + FullyQualifiedErrorId : AmbiguousParameterSet,Get-LogonHistory
+#
+
         # Target computer name
-        [Parameter(Position=0,
-                   ValueFromPipelineByPropertyName=$true,
-                   ParameterSetName='Default')]
+        [Parameter(Position=1,
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true)]
         [string]
         $ComputerName = 'localhost'
 
@@ -67,7 +74,7 @@ function Get-LogonHistory
     }
     Process
     {
-        if ($pscmdlet.ShouldProcess("Target", "Operation"))
+        try
         {
             # Grab the events from a remote computer
             $EventLog = Get-WinEvent -ComputerName $ComputerName -FilterHashtable @{
@@ -75,29 +82,30 @@ function Get-LogonHistory
                             Id=4624;
                             StartTime=$StartDay;
                             EndTime=$StopDay
-                        }
-
-                if($EventLog.count -gt 0)
-                {
-                    Write-Verbose "Got $($EventLog.count) event(s)"
-                }
-
-            # Parse out the event message data
-            ForEach ($Event in $EventLog) {
-
-                $xml = [xml]$Event.ToXml()
-
-                For ($i=0; $i -lt $xml.Event.EventData.Data.Count; $i++)
-                {
-                    $Event |
-                        Add-Member -Force -NotePropertyName $xml.Event.EventData.Data[$i].name -NotePropertyValue $xml.Event.EventData.Data[$i].'#text'
-                }
-            }
-
-            $EventLog |
-                Where-Object { $_.logonType -eq 2 } |
-                Select-Object @{n='User Name';e={$_.TargetUserName}},@{n='Logon Time';e={$_.TimeCreated}},@{n='Computer';e={$_.SubjectUserName}}
+                        } -ErrorVariable e -ErrorAction Stop
+        } catch {
+            Write-Error $e
         }
+
+        Write-Verbose "Got $($EventLog.count) event(s)"
+
+        # Parse out the event message data
+            # NOTE: Special credit redyey, I would not have thought to get the event message out
+            # ...   into properties on the event object to return.
+        ForEach ($Event in $EventLog) {
+
+            $xml = [xml]$Event.ToXml()
+
+            For ($i=0; $i -lt $xml.Event.EventData.Data.Count; $i++)
+            {
+                $Event |
+                    Add-Member -Force -NotePropertyName $xml.Event.EventData.Data[$i].name -NotePropertyValue $xml.Event.EventData.Data[$i].'#text'
+            }
+        }
+
+        $EventLog |
+            Where-Object { $_.logonType -eq 2 } |
+            Select-Object @{n='User Name';e={$_.TargetUserName}},@{n='Logon Time';e={$_.TimeCreated}},@{n='Computer';e={$_.SubjectUserName}}
     }
     End
     {
