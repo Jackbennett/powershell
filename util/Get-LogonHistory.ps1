@@ -88,20 +88,19 @@ function Get-LogonHistory
             # ...   into properties on the event object to return.
         ForEach ($Event in $EventLog) {
 
-            $xml = [xml]$Event.ToXml().Event.EventData
+            $xml = [xml]$Event.ToXml()
+            $ShortName = $xml.Event.EventData
 
-            ForEach ($data in $xml.Data)
+            ForEach ($data in $ShortName.Data)
             {
                 $Event |
                     Add-Member -Force -NotePropertyName $data.name -NotePropertyValue $data.'#text'
             }
         }
 
-        $EventLog |
-            Where-Object {
-                # logon type 2 is an 'Interactive' session, i.e. a real user at the keyboard
-                $_.logonType -eq 2
-            } |
+        # logon type 2 is an 'Interactive' session, i.e. a real user at the keyboard
+        $EventLog | 
+            Where-Object -Property logonType -EQ 2 |
             Select-Object @{
                     name='User Name';
                     expression={ $_.TargetUserName }
