@@ -83,6 +83,12 @@ function global:prompt {
     [System.Environment]::NewLine + "$env:USERNAME λ "
 }
 
+function New-Server {
+    start-job -ScriptBlock {
+        http-server $args[0] -p 80
+    } -name Server -ArgumentList (Get-Location).path
+}
+
 function Backup-Profile {
     Copy-Item `
         -Path $profile.CurrentUserAllHosts `
@@ -94,6 +100,7 @@ add-modules
 
 Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
 Set-Alias sh git-bash
+Set-Alias s New-Server
 Set-Alias lsa get-list
 Set-Alias new new-directory
 Set-Alias g git
