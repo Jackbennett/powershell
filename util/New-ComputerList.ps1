@@ -29,12 +29,11 @@ function New-ComputerList
         $Room
 
         , # Start PC number, default is 1. leading zero is unnecessary
-        [Parameter(ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position=1)]
         [int[]]
         $Computer = 1
 
-        , #Add Full Qualified Domain name
+        , # Add Full Qualified Domain name
         [switch]
         $FQDN = $false
     )

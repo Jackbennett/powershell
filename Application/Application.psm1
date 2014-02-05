@@ -47,7 +47,7 @@
 #>
 function Get-Application
 {
-    [CmdletBinding(SupportsShouldProcess=$true)]
+    [CmdletBinding()]
     Param
     (
         # Find an application by name
@@ -73,45 +73,36 @@ function Get-Application
 
         try
         {
-            # Get everythign installed on the target machine. Don't bother filtering because you must use WQL
-            $app = Get-WmiObject -class Win32_Product `
-                -ComputerName $computerName `
-                -ErrorAction Stop
+            # Get everything installed on the target machine. Don't bother filtering because you must use WQL
+            $app = Get-WmiObject -class Win32_Product -ComputerName $computerName -ErrorAction SilentlyContinue
 
             Write-Verbose ('Installed programs: ' + $app.length)
         }
         catch
         {
-            Write-Verbose "Caught error: Computer is probably offline"
+            Write-error "Caught error: Computer is probably offline"
+            return
         }
-        finally
+
+        <#
+            Here we're going to add and ID field so you can pipe the output to a table
+            and see what $obj[<number>] the application is to remove.
+        #>
+        for ($i = 0; $i -lt $app.name.length; $i++)
         {
-            <#
-                Here we're going to add and ID field so you can pipe the output to a table
-                and see what $obj[<number>] the application is to remove.
-            #>
-            $app = $app |
-                foreach-object -Begin{
-                    $counter = 0
-                } `
-                -Process {
-                    $psItem |
-                        Add-Member -Name ID -Value $counter -MemberType NoteProperty -PassThru
+            $app[$i] | Add-Member -Name ID -Value ($i + 1) -MemberType NoteProperty
+        }
 
-                    ++$counter
-                }
-
-            #Here is where we filter on the provided name if any.
-            if($name)
-            {
-                Write-Verbose "Now filtering out everything that doesn't match '$name'"
-                $app = $app | where {$_.name -Match $name}
-            }
+        #Here is where we filter on the provided name if any.
+        if($name)
+        {
+            Write-Verbose "Now filtering out everything that doesn't match '$name'"
+            $app = $app | where { $_.name -Match $name }
         }
     }
     End
     {
-        $app
+        $app | select ID,name,version,@{n='ComputerName';e={ $_.__SERVER} } | sort name 
     }
 }
 
@@ -163,23 +154,21 @@ function Remove-Application
         }
 
         foreach($c in $computerName){
-            $c
-
             try{
                 Get-WmiObject -class Win32_Product `
                     -filter ("name = '" + $name + "'" ) `
                     -ComputerName $c `
                     -OutVariable app `
-                    -ErrorAction Stop -debug
+                    -ErrorAction Stop
             }
             catch{
-                Write-error "Stop."
+                Write-error "Stop: $c"
+                return
             }
-            finally{
-                Write-Output $app
-            }
+
+            Write-Output $app
         
-            # $app.uninstall()
+            $app.uninstall()
         }
     }
     End

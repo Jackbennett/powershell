@@ -1,46 +1,61 @@
-
+[cmdletBinding()]
 Param(
     # What name would you prefer the drive to be mapped under.
-    [string]$DriveName = "ps"
+    [string]$Store = "ps"
 
     , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
     [switch]$copyProfile
 )
 
-#cleanup old ps store name
-$env:PSModulePath = $env:PSModulePath -replace ";?psStore:\\"
-
-
-# Check to see if the above added drive is in the module path. If not, add it.
-if($env:PSModulePath -notmatch "$DriveName`:")
-{
-    $env:PSModulePath += ";$DriveName`:\"
-    # Add the network path to the shared powershell scripts as a drive for the current user
-    New-PSDrive -Name $DriveName `
-        -PSProvider "FileSystem" `
-        -Root "\\uhserver1\psstore" `
-        -Description "Powershell script and module store"
-}
-
-if ($copyProfile)
-{
-    if( (test-path $profile.CurrentUserAllHosts) )
+$v = measure-command {
+    try
     {
-        Write-output ("Will not overwrite existing profile in: " + $profile.CurrentUserAllHosts)
+        Get-PSDrive $Store -ErrorAction stop
     }
-    else
+    catch [System.Exception]
     {
-        new-item (split-path $profile.CurrentUserAllHosts) -ItemType Directory 
-        Copy-Item "$DriveName`:\profile.template" $profile.CurrentUserAllHosts
+        Write-verbose "adding the store: $Store"
+        # Add the network path to the shared powershell scripts as a drive for the current user
+        New-PSDrive -Name $Store `
+            -PSProvider "FileSystem" `
+            -Root "\\uhhs\psStore" `
+            -Description "Powershell script and module store"
+    }
+    catch
+    {
+        Write-warning 'No Fault'
     }
 }
 
+Write-verbose "$($v.TotalSeconds) seconds - Detecting store drive"
 
-<#
- # I don't think this is nescsary once you've added the psstore to the module path
-#>
-    <#
-    function Import-All($alias){
-        Get-ChildItem -Path psstore:\ -Directory | select name | Import-Module $_
+$v = measure-command {
+    write-verbose "path Before:"
+    $env:PSModulePath.split(';') | % {write-host $PSItem}
+    # Check to see if the above added drive is in the module path. If not, add it.
+    if($env:PSModulePath -notmatch "$Store`:")
+    {
+        Write-verbose "no store found"
+        $env:PSModulePath = $env:PSModulePath.Insert(0, "$Store`:\;")
     }
-    #>
+
+    write-verbose "path after:"
+    $env:PSModulePath.split(';') | % {write-host $PSItem}
+
+}
+
+
+Write-verbose "$($v.TotalSeconds) seconds - add store to path"
+
+function add-modules{
+    Get-ChildItem "$Store`:\" -Directory | ForEach {
+        write-host $PSItem.name
+        $v = measure-command {
+            import-module $psItem.Name
+        }
+
+        Write-verbose "$($v.TotalSeconds) seconds - $($PSItem.Name)"
+    }
+}
+
+# add-modules
