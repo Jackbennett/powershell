@@ -46,16 +46,3 @@ $v = measure-command {
 
 
 Write-verbose "$($v.TotalSeconds) seconds - add store to path"
-
-function add-modules{
-    Get-ChildItem "$Store`:\" -Directory | ForEach {
-        write-host $PSItem.name
-        $v = measure-command {
-            import-module $psItem.Name
-        }
-
-        Write-verbose "$($v.TotalSeconds) seconds - $($PSItem.Name)"
-    }
-}
-
-# add-modules
