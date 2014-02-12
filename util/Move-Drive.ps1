@@ -27,13 +27,7 @@ function Move-Drive
         [Parameter(position=1)]
         [ValidateLength(1,1)]
         [string]
-        $letter
-
-        , # Drive letter to set
-        [Parameter(position=1)]
-        [ValidateLength(1,1)]
-        [string]
-        $path = '\\vapp-02\application_share'
+        $letter = 'Z'
     )
 
     $target = $target.ToUpper()
@@ -44,7 +38,7 @@ function Move-Drive
                 -filter "DriveLetter='$target`:'" `
                 -ComputerName $computerName `
 
-    if ( $letter )
+    if ( $drive )
     {
         $drive.DriveLetter = "$letter`:"
     } else {
@@ -52,13 +46,6 @@ function Move-Drive
         return
     }
 
-    if ( $path )
-    {
-        $drive.Path = "$path"
-    } else {
-        write-warning "$path cannot be set."
-        return
-    }
     try
     {
         invoke-command `
@@ -68,7 +55,6 @@ function Move-Drive
     catch
     {
         Write-error "Cannot move drive $target`: to $letter`:"
-        Write-error "Cannot set path: $path"
         return
     }
 
