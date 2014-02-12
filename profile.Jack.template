@@ -1,0 +1,138 @@
+﻿[cmdletBinding()]
+Param(
+    # What name would you prefer the drive to be mapped under.
+    [string]$Store = "ps"
+
+    , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
+    [switch]$copyProfile
+
+    # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
+)
+
+$Verbose = $VerbosePreference
+
+$v = measure-command {
+    try
+    {
+        Get-PSDrive $Store -ErrorAction stop
+    }
+    catch [System.Exception]
+    {
+        Write-Verbose "adding the store: $Store"
+        # Add the network path to the shared powershell scripts as a drive for the current user
+        New-PSDrive -Name $Store `
+            -PSProvider "FileSystem" `
+            -Root "\\uhhs\psstore" `
+            -Description "Powershell script and module store"
+    }
+    catch
+    {
+        Write-Verbose 'No Fault'
+    }
+}
+
+Write-Verbose "$('{0:N6}' -f $v.TotalSeconds) seconds - Detecting store drive"
+
+$v = measure-command {
+    Write-Verbose "path Before:"
+    $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
+    # Check to see if the above added drive is in the module path. If not, add it.
+    if($env:PSModulePath.Contains("$Store`:"))
+    {
+        Write-Verbose "Store exists"
+    } else {
+        Write-Verbose "Store not found"
+        $env:PSModulePath = $env:PSModulePath.Insert(0, "$Store`:\;")
+        Write-Verbose "path after:"
+        $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
+    }
+}
+
+Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
+
+function add-modules{
+    $module = Get-ChildItem "$Store`:\" -Directory
+    
+    # This is odd, the switch Default is what verbosePreference is if set to anything BUT its default value
+    switch ($Verbose)
+    {
+        'SilentlyContinue'
+        {
+            # The powershell verbgosePreference default value
+            # ignore warning output as I just want to get modules into the session as fast as possible.
+            import-module $module -WarningAction SilentlyContinue
+        }
+        Default
+        {
+            foreach($mod in $module)
+            {
+                Write-Verbose $mod.name
+                # Importing these commands with verbose set increases their exectuion
+                # time and doesn't reflect their true speed fairly. Spot slow ones and import them
+                # specifically with import-module <name> -verbose
+                $VerbosePreference = "SilentlyContinue"
+
+                $t = measure-command {
+                    import-module $mod.name
+                }
+
+                $VerbosePreference = $Verbose
+
+                Write-Verbose "$('{0:N6}' -f $t.TotalSeconds) seconds - $($mod.Name)"
+            }
+        }
+    }
+}
+
+function get-list{
+	get-childitem $args | format-wide -property Name -autosize
+}
+
+function new-directory{
+	new-item -type directory -name $args[0]
+	Set-Location $args[0]
+}
+
+function git-bash{
+    [string]$string = "$env:ProgramFiles\git\bin\sh.exe --login"
+    Invoke-Expression $string
+}
+
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function global:prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    # Reset color, which can be messed up by Enable-GitColors
+    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+
+    Write-Host($pwd.ProviderPath) -nonewline -ForegroundColor Green
+
+    Write-VcsStatus
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    [System.Environment]::NewLine + "$env:USERNAME λ "
+}
+
+function Backup-Profile {
+    Copy-Item `
+        -Path $profile.CurrentUserAllHosts `
+        -Destination "$Store`:\profile.$($env:USERNAME).template" `
+        -Force
+}
+
+# Might not need to do this
+add-modules
+
+Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
+Set-Alias sh git-bash
+Set-Alias lsa get-list
+Set-Alias new new-directory
+Set-Alias g git
+
+$DomainHome = "\\uhserver1\homestaff\home\j.bennett"
+
+Enable-GitColors
+# Start-SshAgent -Quiet
+Set-Location "$HOME\src"
+#Clear-Host
+lsa
