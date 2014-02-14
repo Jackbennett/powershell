@@ -121,7 +121,9 @@ function Backup-Profile {
 }
 
 # Might not need to do this
-add-modules
+if($VerbosePreference -ne "Silentlycontinue"){
+    add-modules
+}
 
 Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
 Set-Alias sh git-bash
