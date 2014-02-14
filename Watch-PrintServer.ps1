@@ -31,5 +31,5 @@
     }
 
     sleep -Seconds 5
-    check
+    Watch-PrintServer
 }
