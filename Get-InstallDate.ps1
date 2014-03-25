@@ -34,7 +34,7 @@ function Get-InstallDate
     }
     Process
     {
-        gwmi win32_operatingsystem -ComputerName $ComputerName | select @{name='installDate';expression={[Management.ManagementDateTimeConverter]::ToDateTime($psItem.installDate)} } ,@{name='ComputerName';expression={$psItem.CSName} }
+        Get-WmiObject win32_OperatingSystem -ComputerName $ComputerName | select @{name='installDate';expression={[Management.ManagementDateTimeConverter]::ToDateTime($psItem.installDate)} } ,@{name='ComputerName';expression={$psItem.CSName} }
         
         # Win 8.1, R2 and WMF 4.0 Only. Won't be using get-CimInstance for a while
         # Get-CimInstance win32_operatingsystem | select installDate
