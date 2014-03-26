@@ -31,3 +31,14 @@
     sleep -Seconds 5
     Watch-PrintServer
 }
+
+<#
+    ToDo:
+        * Lots of code repeated for checking the services and outputting the status
+            - Split logic of checking for the service and outputting formatting the output
+            - Don't repeat code to format the output
+        * Output size is fixed
+            - Take advagnate of Format-Wide or the -autosize on Format-table for nice output
+        * Script hangs if the computerName doesn't respond.
+            - Check service status asynchronously
+#>
