@@ -26,6 +26,7 @@
     }
 
 
+    Write-Host
 
     sleep -Seconds 5
     Watch-PrintServer
