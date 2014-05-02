@@ -57,7 +57,7 @@ $v = measure-command {
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
 function get-list{
-	get-childitem $args | format-wide -property Name -autosize
+	get-childitem @args | format-wide -property Name -autosize
 }
 
 function new-directory{
@@ -106,4 +106,4 @@ $HOMEPATH = Get-PSDrive -Name $HOME.Trim(':\') | select DisplayRoot
 Enable-GitColors
 # Start-SshAgent -Quiet
 Set-Location "$HOME\src"
-gci . -Directory | Format-Wide -Property Name -AutoSize
+lsa -Directory
