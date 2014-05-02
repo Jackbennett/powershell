@@ -3,12 +3,15 @@ Param(
     # What name would you prefer the drive to be mapped under.
     [string]$Store = "ps"
 
+    , # Store Root Path
+    [string]$StoreRoot = (Join-Path $HOME 'ps')
 
     # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
 )
 
 $Verbose = $VerbosePreference
 
+# ---------- Create the store drive ----------
 $v = measure-command {
     try
     {
@@ -17,11 +20,15 @@ $v = measure-command {
     catch [System.Exception]
     {
         Write-Verbose "adding the store: $Store"
-        # Add the network path to the shared powershell scripts as a drive for the current user
-        New-PSDrive -Name $Store `
-            -PSProvider "FileSystem" `
-            -Root "\\uhhs\psstore" `
-            -Description "Powershell script and module store"
+
+        $Drive = @{
+            Root = $StoreRoot
+            Description = "Powershell script and module store"
+            Name = $Store
+            PSProvider = "FileSystem"
+        }
+
+        New-PSDrive @Drive
     }
     catch
     {
