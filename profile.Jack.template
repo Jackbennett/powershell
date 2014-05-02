@@ -120,15 +120,13 @@ function global:prompt {
 }
 
 function Backup-Profile {
-    Copy-Item `
-        -Path $profile.CurrentUserAllHosts `
-        -Destination "$Store`:\profile.$($env:USERNAME).template" `
-        -Force
-}
+    $profile = @{
+        Path = $profile.CurrentUserAllHosts
+        Destination = "$Store`:\profile.Jack.template"
+        Force = $true
+    }
 
-# Might not need to do this
-if($VerbosePreference -ne "Silentlycontinue"){
-    add-modules
+    Copy-Item @profile
 }
 
 Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
