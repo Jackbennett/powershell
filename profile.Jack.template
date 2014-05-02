@@ -3,8 +3,6 @@ Param(
     # What name would you prefer the drive to be mapped under.
     [string]$Store = "ps"
 
-    , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
-    [switch]$copyProfile
 
     # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
 )
