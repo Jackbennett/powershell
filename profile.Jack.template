@@ -38,6 +38,7 @@ $v = measure-command {
 
 Write-Verbose "$('{0:N6}' -f $v.TotalSeconds) seconds - Detecting store drive"
 
+# ---------- Add store to module path ----------
 $v = measure-command {
     Write-Verbose "path Before:"
     $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
