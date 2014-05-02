@@ -116,7 +116,7 @@ function global:prompt {
     Write-VcsStatus
 
     $global:LASTEXITCODE = $realLASTEXITCODE
-    [System.Environment]::NewLine + "$env:USERNAME λ "
+    [System.Environment]::NewLine + "$env:USERNAME $ "
 }
 
 function Backup-Profile {
