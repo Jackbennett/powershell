@@ -70,6 +70,18 @@ function git-bash{
     Invoke-Expression $string
 }
 
+function touch{
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$name
+    )
+    if(-not (test-path $name)){
+        new-item -type file $name -force
+    } else {
+        Write-Warning "$name exists"
+    }
+}
+
 # Set up a simple prompt, adding the git prompt parts inside git repos
 function global:prompt {
     $realLASTEXITCODE = $LASTEXITCODE
