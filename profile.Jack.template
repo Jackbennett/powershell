@@ -56,40 +56,6 @@ $v = measure-command {
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
-function add-modules{
-    $module = Get-ChildItem "$Store`:\" -Directory
-    
-    # This is odd, the switch Default is what verbosePreference is if set to anything BUT its default value
-    switch ($Verbose)
-    {
-        'SilentlyContinue'
-        {
-            # The powershell verbgosePreference default value
-            # ignore warning output as I just want to get modules into the session as fast as possible.
-            import-module $module -WarningAction SilentlyContinue
-        }
-        Default
-        {
-            foreach($mod in $module)
-            {
-                Write-Verbose $mod.name
-                # Importing these commands with verbose set increases their exectuion
-                # time and doesn't reflect their true speed fairly. Spot slow ones and import them
-                # specifically with import-module <name> -verbose
-                $VerbosePreference = "SilentlyContinue"
-
-                $t = measure-command {
-                    import-module $mod.name
-                }
-
-                $VerbosePreference = $Verbose
-
-                Write-Verbose "$('{0:N6}' -f $t.TotalSeconds) seconds - $($mod.Name)"
-            }
-        }
-    }
-}
-
 function get-list{
 	get-childitem $args | format-wide -property Name -autosize
 }
