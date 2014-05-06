@@ -57,7 +57,7 @@ $v = measure-command {
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
 function get-list{
-	get-childitem @args | format-wide -property Name -autosize
+	get-childitem @args | format-wide -autosize
 }
 
 function new-directory{
