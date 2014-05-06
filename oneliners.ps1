@@ -2,7 +2,7 @@
 exit 1
 
 # .Remove all scripts for users logon on the domain.
-    get-aduser -Property ScriptPath -Filter {ScriptPath -notlike $false} | Set-ADUser -ScriptPath $null
+get-aduser -Property ScriptPath -Filter {ScriptPath -notlike $false} | Set-ADUser -ScriptPath $null
 
 # Disable offline files
 & "sc config CscService start=disabled"
