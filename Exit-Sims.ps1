@@ -1,15 +1,15 @@
 ﻿<#
 .Description
-Caveats;
-1. Can't remote onto computers you are logged onto already
-2. Warning Messages for each computer that hasn't worked. 
-    Will continue through the whole list regardless
+    Caveats;
+    1. Can't remote onto computers you are logged onto already
+    2. Warning Messages for each computer that hasn't worked. 
+        Will continue through the whole list regardless
 .EXAMPLE
-.\Exit-Sims.ps1 -ComputerName tech-03,tech-01
-@{computerName=tech-03}
-Have SIMS running. Use -Exit to close these
+    .\Exit-Sims.ps1 -ComputerName tech-03,tech-01
+    @{computerName=tech-03}
+    Have SIMS running. Use -Exit to close these
 .EXAMPLE
-.\Exit-Sims.ps1 -ComputerName tech-03,localhost,tech-01 -Exit
+    .\Exit-Sims.ps1 -ComputerName tech-03,localhost,tech-01 -Exit
 #>
 Param(
     [string[]]$ComputerName = 'localhost'
