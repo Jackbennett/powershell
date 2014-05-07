@@ -20,6 +20,10 @@ $users = Get-ADGroup -Identity examination |
     Get-ADUser -Properties HomeDirectory |
     sort-object -Property SamAccountName
 
+# set new passwords
+$users |
+    Set-ADAccountPassword -NewPassword (ConvertTo-SecureString -AsPlainText "examination" -Force) -Reset
+
 # empty the home folder
 $users |
     select @{n="LiteralPath";e={$psitem.HomeDirectory}} |
