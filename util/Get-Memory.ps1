@@ -20,10 +20,14 @@ function Get-Memory
 
     Begin
     {
-    }
-    Process
-    {
-        $speed = @{
+        # Inconsistent notation to increase readability.
+        $ListOfMemory = @{
+            0  = "DDR 3"
+            21 = "DDR-2"
+            20 = "DDR"
+        }
+
+        $Speed = @{
             Name = "Speed (MHz)"
             Expression = {
                 $_.speed
@@ -41,18 +45,28 @@ function Get-Memory
                 $_.__SERVER
             }
         }
+        $MemoryType = @{
+            name="Memory Type"
+            expression={
+                $_.MemoryType
+                $ListOfMemory.Item($_.MemoryType)
+            }
+        }
 
+    }
+    Process
+    {
         Get-WmiObject `
             -class win32_PhysicalMemory `
-            -ComputerName $computerName `
-            -ErrorAction SilentlyContinue `
+            -ComputerName $ComputerName `
             |
             select `
                 $SourceComputer,
                 Manufacturer,
-                $speed,
+                $Speed,
                 $Capacity,
-                DeviceLocator `
+                DeviceLocator,
+                $MemoryType `
                 |
                 where { $_.DeviceLocator -notmatch "SYSTEM ROM" } `
                 |
