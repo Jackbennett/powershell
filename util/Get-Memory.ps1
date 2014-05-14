@@ -1,12 +1,10 @@
 ﻿<#
 .Synopsis
-   WMI Get memory
+   Show the memory configuration
 .DESCRIPTION
-   Long description
+   Use a WMI query to show the current memory configuration of the target computer
 .EXAMPLE
    Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
 #>
 function Get-Memory
 {
