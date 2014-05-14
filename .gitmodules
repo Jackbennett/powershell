@@ -1,3 +1,6 @@
 [submodule "posh-git"]
 	path = posh-git
 	url = https://github.com/dahlbyk/posh-git.git
+[submodule "ShowUI"]
+	path = ShowUI
+	url = https://github.com/PowerPE/Show-UI.git
