@@ -1,3 +1,8 @@
+<#
+.README
+    A collection of one-line commands or as near as to do simple jobs.
+#>
+
 # Never let this script run alone
 exit 1
 
