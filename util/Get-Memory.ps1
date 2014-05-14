@@ -56,7 +56,7 @@ function Get-Memory
         $Speed = @{
             Name = "Speed (MHz)"
             Expression = {
-                $_.speed
+                $_.Speed
             }
         }
         $Capacity = @{
@@ -66,8 +66,8 @@ function Get-Memory
             }
         }
         $SourceComputer = @{
-            name="Computer Name"
-            expression={
+            Name = "Computer Name"
+            Expression={
                 $_.__SERVER
             }
         }
