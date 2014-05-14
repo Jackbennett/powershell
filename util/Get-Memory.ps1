@@ -72,10 +72,9 @@ function Get-Memory
             }
         }
         $MemoryType = @{
-            name="Memory Type"
-            expression={
-                $_.MemoryType
-                $ListOfMemory.Item($_.MemoryType)
+            Name = "Memory Type"
+            Expression = {
+                $ListOfMemory.Item([int]$_.MemoryType)
             }
         }
 
