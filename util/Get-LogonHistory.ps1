@@ -5,15 +5,11 @@
    Show interactive user logon history of the users on a target computer from the Security log.
 
    CREDITS
-    .NET XML event message parsing from freenode#powershell IRC User redyey
+    (dot)NET XML event message parsing from freenode#powershell IRC User redyey
     Parameter names and .NET object refactoring from freenode#powershell IRC User Jaykul
 .EXAMPLE
    Get-LogonHistory 15-31
    Returns the User Name, Firstname, Surename, Logon time, logoff time
-.INPUTS
-   Inputs to this cmdlet (if any)
-.OUTPUTS
-   Output from this cmdlet (if any)
 .NOTES
    LOGON event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4624
    LOGOFF event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4634

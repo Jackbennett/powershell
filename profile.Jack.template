@@ -3,14 +3,15 @@ Param(
     # What name would you prefer the drive to be mapped under.
     [string]$Store = "ps"
 
-    , # If you don't have an existing profile, Copy our template in that maps the drive as your profile.
-    [switch]$copyProfile
+    , # Store Root Path
+    [string]$StoreRoot = (Join-Path $HOME 'ps')
 
     # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
 )
 
 $Verbose = $VerbosePreference
 
+# ---------- Create the store drive ----------
 $v = measure-command {
     try
     {
@@ -19,11 +20,15 @@ $v = measure-command {
     catch [System.Exception]
     {
         Write-Verbose "adding the store: $Store"
-        # Add the network path to the shared powershell scripts as a drive for the current user
-        New-PSDrive -Name $Store `
-            -PSProvider "FileSystem" `
-            -Root "\\uhhs\psstore" `
-            -Description "Powershell script and module store"
+
+        $Drive = @{
+            Root = $StoreRoot
+            Description = "Powershell script and module store"
+            Name = $Store
+            PSProvider = "FileSystem"
+        }
+
+        New-PSDrive @Drive
     }
     catch
     {
@@ -33,6 +38,7 @@ $v = measure-command {
 
 Write-Verbose "$('{0:N6}' -f $v.TotalSeconds) seconds - Detecting store drive"
 
+# ---------- Add store to module path ----------
 $v = measure-command {
     Write-Verbose "path Before:"
     $env:PSModulePath.split(';') | % {Write-Verbose "    $PSItem"}
@@ -50,42 +56,8 @@ $v = measure-command {
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
-function add-modules{
-    $module = Get-ChildItem "$Store`:\" -Directory
-    
-    # This is odd, the switch Default is what verbosePreference is if set to anything BUT its default value
-    switch ($Verbose)
-    {
-        'SilentlyContinue'
-        {
-            # The powershell verbgosePreference default value
-            # ignore warning output as I just want to get modules into the session as fast as possible.
-            import-module $module -WarningAction SilentlyContinue
-        }
-        Default
-        {
-            foreach($mod in $module)
-            {
-                Write-Verbose $mod.name
-                # Importing these commands with verbose set increases their exectuion
-                # time and doesn't reflect their true speed fairly. Spot slow ones and import them
-                # specifically with import-module <name> -verbose
-                $VerbosePreference = "SilentlyContinue"
-
-                $t = measure-command {
-                    import-module $mod.name
-                }
-
-                $VerbosePreference = $Verbose
-
-                Write-Verbose "$('{0:N6}' -f $t.TotalSeconds) seconds - $($mod.Name)"
-            }
-        }
-    }
-}
-
 function get-list{
-	get-childitem $args | format-wide -property Name -autosize
+	get-childitem @args | format-wide -autosize
 }
 
 function new-directory{
@@ -96,6 +68,18 @@ function new-directory{
 function git-bash{
     [string]$string = "$env:ProgramFiles\git\bin\sh.exe --login"
     Invoke-Expression $string
+}
+
+function touch{
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$name
+    )
+    if(-not (test-path $name)){
+        new-item -type file $name -force
+    } else {
+        Write-Warning "$name exists"
+    }
 }
 
 # Set up a simple prompt, adding the git prompt parts inside git repos
@@ -110,7 +94,7 @@ function global:prompt {
     Write-VcsStatus
 
     $global:LASTEXITCODE = $realLASTEXITCODE
-    [System.Environment]::NewLine + "$env:USERNAME λ "
+    [System.Environment]::NewLine + "$env:USERNAME $ "
 }
 
 function New-Server {
@@ -120,26 +104,25 @@ function New-Server {
 }
 
 function Backup-Profile {
-    Copy-Item `
-        -Path $profile.CurrentUserAllHosts `
-        -Destination "$Store`:\profile.$($env:USERNAME).template" `
-        -Force
+    $profile = @{
+        Path = $profile.CurrentUserAllHosts
+        Destination = "$Store`:\profile.Jack.template"
+        Force = $true
+    }
+
+    Copy-Item @profile
 }
 
-# Might not need to do this
-add-modules
-
-Set-Alias subl "$env:ProgramFiles\Sublime Text 3\sublime_text.exe"
+Set-Alias subl (Join-Path $HOME "Sublime Text 3\sublime_text.exe")
 Set-Alias sh git-bash
 Set-Alias s New-Server
 Set-Alias lsa get-list
 Set-Alias new new-directory
 Set-Alias g git
 
-$DomainHome = "\\uhserver1\homestaff\home\j.bennett"
+$HOMEPATH = Get-PSDrive -Name $HOME.Trim(':\') | select DisplayRoot
 
 Enable-GitColors
 # Start-SshAgent -Quiet
 Set-Location "$HOME\src"
-#Clear-Host
-lsa
+lsa -Directory

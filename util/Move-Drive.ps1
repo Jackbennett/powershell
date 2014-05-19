@@ -8,7 +8,7 @@
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Remap-Drive
+function Move-Drive
 {
     Param(
         # Target Computer name to remap the drive
