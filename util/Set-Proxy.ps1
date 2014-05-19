@@ -19,6 +19,9 @@ function Set-Proxy
                    Position=0)]
         $proxy = "http://proxy.lancsngfl.ac.uk:8080"
 
+        , # If you want to permenantly set this. reqires restart
+        [switch]
+        $global
     )
 
     Begin
@@ -28,13 +31,23 @@ function Set-Proxy
     {
         Get-SSID | select ssid | foreach-object {
 	        if ($_.ssid -match "upholland"){
-                [environment]::SetEnvironmentVariable("http_proxy", $proxy, "User")
-                [environment]::SetEnvironmentVariable("https_proxy", $proxy, "User")
+                if($global){
+                    [environment]::SetEnvironmentVariable("http_proxy", $proxy, "User")
+                    [environment]::SetEnvironmentVariable("https_proxy", $proxy, "User")
+                } else {
+                    $env:http_proxy = $proxy
+                    $env:https_proxy = $proxy
+                }
 		        git config --global --add http.proxy $proxy
 		        git config --global --add https.proxy $proxy
 	        } else {
-                [environment]::SetEnvironmentVariable("http_proxy", $null, "User")
-                [environment]::SetEnvironmentVariable("https_proxy", $null, "User")
+                if($global){
+                    [environment]::SetEnvironmentVariable("http_proxy", $null, "User")
+                    [environment]::SetEnvironmentVariable("https_proxy", $null, "User")
+                } else {
+                    Remove-Variable $env:http_proxy
+                    Remove-Variable $env:https_proxy
+                }
 		        git config --global --remove-section http
 		        git config --global --remove-section https
 	        }
