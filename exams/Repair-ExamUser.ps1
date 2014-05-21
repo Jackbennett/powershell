@@ -18,7 +18,7 @@ $source = @'
 $users = Get-ADGroup -Identity examination |
     Get-ADGroupMember |
     Get-ADUser -Properties HomeDirectory |
-    sort-object -Property SamAccountName
+    Sort-Object -Property SamAccountName
 
 # set new passwords
 $users |
@@ -52,5 +52,4 @@ $users | ForEach-Object -Begin {
         $HomeDirectory.AddAccessRule($FileSystemAccessRule)
 
         $HomeDirectory | Set-acl
-
     }
