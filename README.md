@@ -17,11 +17,15 @@ All **folders** in the repo are modules intended for use or well on their way to
 
 Add the modules you're interested in to your session with
 
+```PowerShell
     import-module <module name>
+```
 
 Add all of the modules by adding the above command to your profile with
 
+```PowerShell
     if(test-path $profile){notepad $profle}else{new-item $profile -type File; notepad $profile}
+```
 
 There is a sample profile template in the repo as `profile.template`. This is an example of how I'm importing these scripts.
 
@@ -42,7 +46,9 @@ Module that contains generic helper functions I've found useful to use every wee
 
 Find and remove applications on a computer
 
+```PowerShell
     get-command -Module Application
+```
 
 ## Exams
 
