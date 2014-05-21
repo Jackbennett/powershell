@@ -36,17 +36,21 @@ $users |
     copy-item -Path $source -Force
 
 # Ensure Folder permissions are correct
-$user = get-aduser exam4 -Properties homeDirectory
+$users | ForEach-Object -Begin {
+        Write-Verbose "Ensure use account has full access to home directory"
+    } -Process {
 
         $FileSystemRights = [System.Security.AccessControl.FileSystemRights]"FullControl"
 
         $AccessControlType =[System.Security.AccessControl.AccessControlType]::Allow
 
         $FileSystemAccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule `
-            ($user.samAccountName, $FileSystemRights, "ContainerInherit, ObjectInherit", "none", $AccessControlType)
+            ($PSItem.samAccountName, $FileSystemRights, "ContainerInherit, ObjectInherit", "none", $AccessControlType)
 
-        $HomeDirectory = Get-Acl -Path $user.HomeDirectory
+        $HomeDirectory = Get-Acl -Path $PSItem.HomeDirectory
 
         $HomeDirectory.AddAccessRule($FileSystemAccessRule)
 
         $HomeDirectory | Set-acl
+
+    }
