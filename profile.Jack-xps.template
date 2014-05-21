@@ -1,0 +1,74 @@
+﻿$Store = 'ps'
+$StoreRoot = "f:/src/ps"
+
+Invoke-Expression  ". $(join-path $StoreRoot 'Import-Store.ps1')"
+Import-Store -Store $Store -StoreRoot $StoreRoot
+
+function get-list{
+	get-childitem @args | format-wide -autosize
+}
+
+function new-directory{
+	new-item -type directory -name $args[0]
+	Set-Location $args[0]
+}
+
+function git-bash{
+    [string]$string = "$env:ProgramFiles\git\bin\sh.exe --login"
+    Invoke-Expression $string
+}
+
+function touch{
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$name
+    )
+    if(-not (test-path $name)){
+        new-item -type file $name -force
+    } else {
+        Write-Warning "$name exists"
+    }
+}
+
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function global:prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    # Reset color, which can be messed up by Enable-GitColors
+    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+
+    Write-Host($pwd.ProviderPath) -nonewline -ForegroundColor Green
+
+    Write-VcsStatus
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    [System.Environment]::NewLine + "$env:USERNAME $ "
+}
+
+function swap-python {
+    if($env:path -match 'Python27'){
+        $env:Path = $env:path.replace('Python27', 'Python33')
+    } else {
+        $env:Path = $env:path.replace('Python33', 'Python27')
+    }
+}
+
+function Backup-Profile {
+    $profile = @{
+        Path = $profile.CurrentUserAllHosts
+        Destination = join-path $Store "profile.Jack-xps.template"
+        Force = $true
+    }
+
+    Copy-Item @profile
+}
+
+Set-Alias sh git-bash
+Set-Alias lsa get-list
+Set-Alias new new-directory
+Set-Alias g git
+
+Enable-GitColors
+# Start-SshAgent -Quiet
+Set-Location "F:\src"
+lsa -Directory
