@@ -39,3 +39,29 @@ Find and remove applications on a computer
 
     get-command -Module Application
 
+## Exams
+
+Subset of cmdlets for managing the examination accounts used on the domain.
+
+### Remove/Set OfficeRestrictions
+
+Modify the users office install to control spelling and grammar corrections for use in exam conditions. Usually applied via logon/off script GPO
+
+### Get Candidate Data
+
+Simple UI to run at logon to prompt a student for their name and candidate number
+
+### Repair ExamUser
+
+Getting all members of the security group "examinations" do the following;
+
+* Mass reset passwords.
+* Batch clear the home directories.
+* Copy into the home directory new boilerplate documents.
+* Guarantee the exam account has full ownership of its home folder
+
+### Todo:
+- [ ] Copy the contents of the exam account to an archive
+- [ ] Basic GUI Prompt to get student full name and candidate number
+- [ ] Set Gui to run at first logon after archiving the existing account
+- [ ] Test account folder permission ACL before resetting to see if it's necessary
