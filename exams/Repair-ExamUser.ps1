@@ -34,3 +34,19 @@ $users |
 $users |
     select @{n="Destination";e={$psitem.HomeDirectory}} |
     copy-item -Path $source -Force
+
+# Ensure Folder permissions are correct
+$user = get-aduser exam4 -Properties homeDirectory
+
+        $FileSystemRights = [System.Security.AccessControl.FileSystemRights]"FullControl"
+
+        $AccessControlType =[System.Security.AccessControl.AccessControlType]::Allow
+
+        $FileSystemAccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule `
+            ($user.samAccountName, $FileSystemRights, "ContainerInherit, ObjectInherit", "none", $AccessControlType)
+
+        $HomeDirectory = Get-Acl -Path $user.HomeDirectory
+
+        $HomeDirectory.AddAccessRule($FileSystemAccessRule)
+
+        $HomeDirectory | Set-acl
