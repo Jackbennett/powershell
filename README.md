@@ -29,9 +29,14 @@ There is a sample profile template in the repo as `profile.template`. This is an
 
 ## Utils
 
-File that's going to contain some generic helper functions
+Module that contains generic helper functions I've found useful to use every week.
 
-    Get-Command -Module utils
+```PowerShell
+    Get-Command -Module util
+```
+
+### Todo:
+- [ ] `Set-Proxy` currently sets a given proxy URL _only_ when matching a **hardcoded** SSID string
 
 ## Application
 
