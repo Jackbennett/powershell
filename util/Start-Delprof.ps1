@@ -43,7 +43,7 @@ function Start-Delprof
         foreach ($name in $computerName)
         {
             start-job -Name $name -ArgumentList $name,$ModuleName -ScriptBlock {
-               Invoke-Expression -Command "PS:\$($args[1])\bin\DelProf2.exe /u /q /i /c:\\$($args[0])"
+               Invoke-Expression -Command "& 'PS:\$($args[1])\bin\DelProf2.exe /u /q /i /c:\\$($args[0])'"
             }
         }
     }
