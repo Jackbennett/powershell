@@ -81,7 +81,7 @@ function Get-LogonHistory
 
         # Parse out the event message data
             # NOTE: Special credit redyey, I would not have thought to get the event message out
-            # ...   into properties on the event object to return.
+            #       into properties on the event object to return.
         ForEach ($Event in $EventLog) {
 
             $xml = [xml]$Event.ToXml()
