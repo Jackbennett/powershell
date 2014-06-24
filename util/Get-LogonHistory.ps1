@@ -117,7 +117,10 @@ function Get-LogonHistory
                     expression={ $_.TimeCreated }
                 },@{
                     name='Computer';
-                    expression={ $_.SubjectUserName }
+                    expression={
+                        # To strip the dollar appended from the event log string
+                        $_.SubjectUserName.Replace('$','')
+                    }
                 }
     }
     End
