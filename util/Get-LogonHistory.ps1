@@ -110,13 +110,13 @@ function Get-LogonHistory
                 ($_.logonType -EQ $LogonType.Interactive) -or ($_.logonType -EQ $LogonType.CachedInteractive)
             } |
             Select-Object @{
-                    name='User Name';
+                    name='Username';
                     expression={ $_.TargetUserName }
                 },@{
-                    name='Logon Time';
+                    name='Time';
                     expression={ $_.TimeCreated }
                 },@{
-                    name='Computer';
+                    name='ComputerName';
                     expression={
                         # To strip the dollar appended from the event log string
                         $_.SubjectUserName.Replace('$','')
