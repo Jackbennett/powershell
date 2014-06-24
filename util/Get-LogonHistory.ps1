@@ -15,9 +15,7 @@
    LOGOFF event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4634
    WORKSTATION_LOCKED event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4800
    WORKSTATION_UNLOCKED event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4801
-   Logon Types: Interactive = 2; Network = 3; Batch = 4; Service = 5; Unlock = 7;
-      NetworkCleartext = 8; NewCredentials = 9; RemoteInteractive = 10; CachedInteractive = 11 
-      [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
+   Logon Types: [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
    Getting details from event logs:
    [ref]http://blogs.technet.com/b/ashleymcglone/archive/2013/08/28/powershell-get-winevent-xml-madness-getting-details-from-event-logs.aspx
 #>
@@ -51,6 +49,18 @@ function Get-LogonHistory
 
     Begin
     {
+        $LogonType = @{
+            Interactive = 2
+            Network = 3
+            Batch = 4
+            Service = 5
+            Unlock = 7
+            NetworkCleartext = 8
+            NewCredentials = 9
+            RemoteInteractive = 10
+            CachedInteractive = 11
+        }
+
         if($Today)
         {
             $PastDays = 0
@@ -94,9 +104,11 @@ function Get-LogonHistory
             }
         }
 
-        # logon type 2 is an 'Interactive' session, i.e. a real user at the keyboard
-        $EventLog | 
-            Where-Object -Property logonType -EQ 2 |
+        # Select only "real user at the keyboard" logon types.
+        $EventLog |
+            Where-Object {
+                ($_.logonType -EQ $LogonType.Interactive) -or ($_.logonType -EQ $LogonType.CachedInteractive)
+            } |
             Select-Object @{
                     name='User Name';
                     expression={ $_.TargetUserName }
