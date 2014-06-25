@@ -17,30 +17,38 @@ function Enable-JumboPacket
         # Target Computer
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Computername
+        [Alias('ComputerName')]
+        $CimSession
     )
 
     Begin
     {
-        if($Computername -isnot [Microsoft.Management.Infrastructure.CimSession]){
+        if(($CimSession) -and ($CimSession -isnot [Microsoft.Management.Infrastructure.CimSession]) ){
             try{
-                $Computername = $Computername | New-CimSession
-            } catch {
+                $CimSession = $CimSession | New-CimSession
                 throw
+            } catch {
                 exit
             }
+        }
+
+        function adapter{
+            Get-NetAdapterAdvancedProperty -RegistryKeyword '*JumboPacket'
+            # Set-NetAdapterAdvancedProperty -RegistryValue '9014' -NoRestart
         }
     }
     Process
     {
-        $Computername | Get-NetAdapterAdvancedProperty -DisplayName “Jumbo Packet” 
-
-           # Set-NetAdapterAdvancedProperty -RegistryValue '9014' -NoRestart
+        if($CimSession){
+            $CimSession | adapter
+        } else {
+            adapter
+        }
     }
     End
     {
         Write-Output "Target computer should be restarted."
 
-        $Computername | Remove-CimSession
+        $CimSession | Remove-CimSession
     }
 }
