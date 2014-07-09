@@ -12,16 +12,25 @@ if($HostcomputerTest -eq $false){
 # Preserve a variable outside the foreach cmdlet scope.
 [string]$StopLast = $null
 
+# Keep tech-01 online for remote access.
+function halt([string]$pc){
+    if($pc -eq 'Tech-01'){
+        Restart-computer $pc -Force
+    } else {
+        Stop-Computer -ComputerName $pc -Force
+    }
+}
+
 # Must not turn off host PC before sending stop-computer to the others.
 [scriptblock]$EachComputer = {
     if($_ -eq $env:COMPUTERNAME){
         $StopLast = $_
     } else {
-        Stop-Computer -ComputerName $_ -Force
+        halt $_
     }
 }
 
 $Office[$env:username] |
     ForEach-Object -Process $EachComputer -End {
-        Stop-Computer -ComputerName $StopLast -Force
+        halt $StopLast
     }
