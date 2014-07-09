@@ -28,7 +28,7 @@ function Get-LogonHistory
         [Parameter(Position=0,
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true)]
-        [string]
+        [string[]]
         $ComputerName = 'localhost'
 
         , # How many days before today should I search. By default get yesterdays records
@@ -99,6 +99,8 @@ function Get-LogonHistory
 
             ForEach ($data in $ShortName.Data)
             {
+                write-debug ("Name: " + $data.name)
+                Write-debug ("    : " + $data.'#text')
                 $Event |
                     Add-Member -Force -NotePropertyName $data.name -NotePropertyValue $data.'#text'
             }
@@ -106,9 +108,7 @@ function Get-LogonHistory
 
         # Select only "real user at the keyboard" logon types.
         $EventLog |
-            Where-Object {
-                ($_.logonType -EQ $LogonType.Interactive) -or ($_.logonType -EQ $LogonType.CachedInteractive)
-            } |
+            Where logonType -In $LogonType.Interactive, $LogonType.CachedInteractive |
             Select-Object @{
                     name='Username';
                     expression={ $_.TargetUserName }
