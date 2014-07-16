@@ -28,7 +28,7 @@ function Get-LogonHistory
         [Parameter(Position=0,
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true)]
-        [string[]]
+        [string]
         $ComputerName = 'localhost'
 
         , # How many days before today should I search. By default get yesterdays records
