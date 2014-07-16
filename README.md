@@ -1,4 +1,4 @@
-﻿# Powershell scripts development
+# Powershell scripts development
 
 # What is this?
 
@@ -41,6 +41,8 @@ Get-Command -Module util
 
 ### Todo:
 - [ ] `Set-Proxy` currently sets a given proxy URL _only_ when matching a **hardcoded** SSID string
+- [ ] Create a `Get-Student` cmdlet to wrap `Get-ADUser` with some custom properties from the AD that more more useful e.g. Year group, Form, email, home drive etc. 
+- [ ] Modify `Get-LogonHistory` to accept an array of computernames an use jobs to make the `Get-WinEvent` call work in parrallel.
 
 ## Application
 
