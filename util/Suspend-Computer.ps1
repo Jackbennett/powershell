@@ -8,7 +8,7 @@
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Sleep-computer
+function Suspend-computer
 {
     [CmdletBinding(
         SupportsShouldProcess=$true,
