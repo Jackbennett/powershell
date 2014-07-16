@@ -38,6 +38,14 @@ function Move-Drive
         [string]
         $ComputerName = 'localhost'
     )
+    Begin{
+        if( $ComputerName -eq 'localhost' -and -not (
+            [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+            ).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")
+          )
+        {
+            throw "This command requires elevated privileges"
+        }
 
         $Target = $Target.ToUpper()
         $Destination = $Destination.ToUpper()
