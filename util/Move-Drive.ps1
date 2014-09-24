@@ -1,65 +1,89 @@
 ﻿<#
 .Synopsis
-   Remap a driver letter that is in use
+   Change a drive letter.
 .DESCRIPTION
    Change a drive letter for a device to another letter.
+
+   To run this command locally it must run under elevated privileges. If a computername is specified 
+   your credentials should have enaough permissions to perform the operation.
 .EXAMPLE
-   Remap-Drive
+    Move-Drive
+    This command requires elevated privileges
+
+    Run the command as an administrator
 .EXAMPLE
-   Another example of how to use this cmdlet
+    move-drive e f tech-01 -verbose
+    VERBOSE: Moved drive name E to F
 #>
 function Move-Drive
 {
     Param(
-        # Target Computer name to remap the drive
-        [Parameter(position=2)]
-        [string]
-        $computerName = 'localhost'
-
-        , # Target drive letter
-        [Parameter(position=0)]
-        [ValidateLength(1,1)]
-        [ValidateRange("A","Z")]
-        [string]
-        $target = 'F'
-
-        , # Drive letter to set
+        # Target drive letter
         [Parameter(position=1)]
         [ValidateLength(1,1)]
+        [ValidatePattern("[a-z]")]
         [string]
-        $letter = 'Z'
+        $Target = 'F'
+
+        , # Drive destination to set
+        [Parameter(position=2)]
+        [ValidateLength(1,1)]
+        [ValidatePattern("[a-z]")]
+        [ValidateScript({ $psItem -ne $Target })]
+        [string]
+        $Destination = 'Z'
+
+        ,# Target Computer perform the remap
+        [Parameter(position=3)]
+        [string]
+        $ComputerName = 'localhost'
     )
+    Begin{
+        if( $ComputerName -eq 'localhost' -and -not (
+            [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+            ).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")
+          )
+        {
+            throw "This command requires elevated privileges"
+        }
 
-    $target = $target.ToUpper()
-    $letter = $letter.ToUpper()
+        $Target = $Target.ToUpper()
+        $Destination = $Destination.ToUpper()
 
-    $drive = Get-WmiObject `
-                -Class "win32_volume" `
-                -filter "DriveLetter='$target`:'" `
-                -ComputerName $computerName `
+        if($Target -eq $Destination)
+        {
+            throw "Target ($Target) matches destination ($Destination). Exiting."
+        }
 
-    if ( $drive )
-    {
-        $drive.DriveLetter = "$letter`:"
-    } else {
-        write-warning "$target Drive not found."
-        return
+        $Query = @{
+            Class        = "Win32_Volume"
+            Filter       = "DriveLetter='$Target`:'"
+            ComputerName = $ComputerName
+        }
     }
+    Process
+    {
+        $drive = Get-WmiObject @Query
 
-    try
-    {
-        invoke-command `
-            -ScriptBlock { $drive.put() > $null } `
-            -ErrorVariable err
-    }
-    catch
-    {
-        Write-error "Cannot move drive $target`: to $letter`:"
-        return
-    }
+        if ( $drive )
+        {
+            $drive.DriveLetter = "$Destination`:"
+        } else {
+            Write-Warning "$Target Drive not found."
+            return
+        }
 
-    if( -not $err )
-    {
-        write-output "Moved drive $target`: to $letter`:"
+        try
+        {
+            Write-Progress -Activity "Working..." -Status "Move drive name $Target to $Destination"
+            $drive.put() > $null
+        }
+        catch
+        {
+            Write-Error "Cannot move drive $Target`: to $Destination`:"
+            return
+        }
+
+        Write-Verbose "Moved drive name $Target to $Destination"
     }
 }

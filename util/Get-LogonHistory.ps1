@@ -15,9 +15,7 @@
    LOGOFF event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4634
    WORKSTATION_LOCKED event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4800
    WORKSTATION_UNLOCKED event Log Name: Security, Source: Microsoft-Windows-Security-Auditing, ID: 4801
-   Logon Types: Interactive = 2; Network = 3; Batch = 4; Service = 5; Unlock = 7;
-      NetworkCleartext = 8; NewCredentials = 9; RemoteInteractive = 10; CachedInteractive = 11 
-      [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
+   Logon Types: [ref]http://www.windowsecurity.com/articles-tutorials/misc_network_security/Logon-Types.html
    Getting details from event logs:
    [ref]http://blogs.technet.com/b/ashleymcglone/archive/2013/08/28/powershell-get-winevent-xml-madness-getting-details-from-event-logs.aspx
 #>
@@ -51,6 +49,18 @@ function Get-LogonHistory
 
     Begin
     {
+        $LogonType = @{
+            Interactive = 2
+            Network = 3
+            Batch = 4
+            Service = 5
+            Unlock = 7
+            NetworkCleartext = 8
+            NewCredentials = 9
+            RemoteInteractive = 10
+            CachedInteractive = 11
+        }
+
         if($Today)
         {
             $PastDays = 0
@@ -81,7 +91,7 @@ function Get-LogonHistory
 
         # Parse out the event message data
             # NOTE: Special credit redyey, I would not have thought to get the event message out
-            # ...   into properties on the event object to return.
+            #       into properties on the event object to return.
         ForEach ($Event in $EventLog) {
 
             $xml = [xml]$Event.ToXml()
@@ -89,23 +99,28 @@ function Get-LogonHistory
 
             ForEach ($data in $ShortName.Data)
             {
+                write-debug ("Name: " + $data.name)
+                Write-debug ("    : " + $data.'#text')
                 $Event |
                     Add-Member -Force -NotePropertyName $data.name -NotePropertyValue $data.'#text'
             }
         }
 
-        # logon type 2 is an 'Interactive' session, i.e. a real user at the keyboard
-        $EventLog | 
-            Where-Object -Property logonType -EQ 2 |
+        # Select only "real user at the keyboard" logon types.
+        $EventLog |
+            Where logonType -In $LogonType.Interactive, $LogonType.CachedInteractive |
             Select-Object @{
-                    name='User Name';
+                    name='Username';
                     expression={ $_.TargetUserName }
                 },@{
-                    name='Logon Time';
+                    name='Time';
                     expression={ $_.TimeCreated }
                 },@{
-                    name='Computer';
-                    expression={ $_.SubjectUserName }
+                    name='ComputerName';
+                    expression={
+                        # To strip the dollar appended from the event log string
+                        $_.SubjectUserName.Replace('$','')
+                    }
                 }
     }
     End

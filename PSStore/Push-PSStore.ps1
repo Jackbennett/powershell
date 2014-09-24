@@ -20,7 +20,7 @@
 .FUNCTIONALITY
    The functionality that best describes this cmdlet
 #>
-function Verb-Noun
+function Pull-PSStore
 {
     [CmdletBinding(DefaultParameterSetName='Parameter Set 1', 
                   SupportsShouldProcess=$true, 
