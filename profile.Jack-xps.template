@@ -15,7 +15,19 @@ function new-directory{
 
 function git-bash{
     [string]$string = "$env:ProgramFiles\git\bin\sh.exe --login"
-    Invoke-Expression $string
+    & $string
+}
+function git-server{
+    Param(
+        $Port = 7000,
+        $BasePath= 'F:/repo',
+        [switch]$EnablePush
+    )
+    if($EnablePush){
+        iex -Command "git daemon --verbose --base-path=$BasePath --reuseaddr --port=$port --export-all --enable=receive-pack"
+    }else{
+        iex -Command "git daemon --verbose --base-path=$BasePath --reuseaddr --port=$port --export-all"
+    }
 }
 
 function touch{
@@ -56,7 +68,7 @@ function swap-python {
 function Backup-Profile {
     $profile = @{
         Path = $profile.CurrentUserAllHosts
-        Destination = join-path $Store "profile.Jack-xps.template"
+        Destination = join-path $StoreRoot "profile.Jack-xps.template"
         Force = $true
     }
 
