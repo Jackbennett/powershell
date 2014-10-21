@@ -28,7 +28,7 @@ function Format-ActiveLearnUsers
 
     Process
     {
-        $CSV |
+        $row = $CSV |
             Select @{
                 Name='DOB';
                 Expression={
@@ -47,13 +47,15 @@ function Format-ActiveLearnUsers
                 Expression={
                     Remove-Variable matches
                     $_."Year of entry" -match "\d{2}$" > $null
-                    $matches.Values
+                    $matches.Values[0]
                 };
             },
             Forename,
-            Surname |
-            Add-Member -MemberType NoteProperty -Name Password -Value $password -PassThru | 
-            Add-Member -MemberType NoteProperty -Name Username -Value ($prefix + $_.startYear + $_.surname + $_.forename[0]) -PassThru |
-            select -property * -exclude  "startYear"
+            Surname 
+
+        $row | Add-Member -MemberType NoteProperty -Name Password -Value $password
+        $row | Add-Member -MemberType NoteProperty -Name Username -Value ($prefix + $row.startYear + $_.surname + $_.forename[0])
+
+        $row | select -property * -exclude  "startYear"
     }
 }
