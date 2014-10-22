@@ -4,12 +4,17 @@ Param(
     [string]$Store = "ps"
 
     , # Store Root Path
-    [string]$StoreRoot = (Join-Path $HOME 'ps')
+    [string]$StoreRoot = (Join-Path $env:HOMEDRIVE 'ps')
 
     # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
 )
 
 $Verbose = $VerbosePreference
+$git = $false
+
+if(Get-Command "git" -ErrorAction SilentlyContinue){
+    $git = $true
+}
 
 # ---------- Create the store drive ----------
 $v = measure-command {
@@ -86,12 +91,16 @@ function touch{
 function global:prompt {
     $realLASTEXITCODE = $LASTEXITCODE
 
-    # Reset color, which can be messed up by Enable-GitColors
-    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+    if($git){
+        # Reset color, which can be messed up by Enable-GitColors
+        $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+    }
 
     Write-Host($pwd.ProviderPath) -nonewline -ForegroundColor Green
 
-    Write-VcsStatus
+    if($git){
+        Write-VcsStatus
+    }
 
     $global:LASTEXITCODE = $realLASTEXITCODE
     [System.Environment]::NewLine + "$env:USERNAME $ "
@@ -115,7 +124,9 @@ Set-Alias g git
 
 $HOMEPATH = Get-PSDrive -Name $HOME.Trim(':\') | select DisplayRoot
 
-Enable-GitColors
-# Start-SshAgent -Quiet
+if($git){
+    Enable-GitColors
+}
+
 Set-Location "$HOME\src"
 lsa -Directory
