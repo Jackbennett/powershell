@@ -88,6 +88,7 @@ function Backup-Profile {
 Set-Alias sh git-bash
 Set-Alias lsa get-list
 Set-Alias new new-directory
+Set-Alias v vagrant
 Set-Alias g git
 
 Enable-GitColors
