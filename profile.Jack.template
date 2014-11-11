@@ -61,6 +61,14 @@ $v = measure-command {
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
+function swap-python {
+    if($env:path -match 'Python27'){
+        $env:Path = $env:path.replace('Python27', 'Python34')
+    } else {
+        $env:Path = $env:path.replace('Python34', 'Python27')
+    }
+}
+
 function get-list{
 	get-childitem @args | format-wide -autosize
 }
@@ -96,7 +104,7 @@ function global:prompt {
         $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
     }
 
-    Write-Host($pwd.ProviderPath) -nonewline -ForegroundColor Green
+    Write-Host($pwd.Path) -nonewline -ForegroundColor Green
 
     if($git){
         Write-VcsStatus
