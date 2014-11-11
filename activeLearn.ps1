@@ -4,7 +4,7 @@
 .DESCRIPTION
    Long description
 .EXAMPLE
-   Example of how to use this cmdlet
+   Import-CSV './users.csv' | Format-ActiveLearnUsers | ConvertTo-CSV | Out-File 'Formatted-Users.csv'
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
