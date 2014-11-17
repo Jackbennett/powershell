@@ -14,7 +14,7 @@ get-aduser -Property ScriptPath -Filter {ScriptPath -notlike $false} | Set-ADUse
 new-itemproperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Csc\Parameters" -name FormatDatabase -propertytype DWORD -value 1
 
 # Get a batch of the status of ligcator for a whole bunch of rooms
-Set-Location $HOME
+Import-Module Util
 
 $cred = Get-Credential 08105curric\j
 $r40 = New-ComputerList -Room 40 -Computer (1..26) -FQDN | New-PSSession -Credential $cred -Authentication Credssp
