@@ -45,10 +45,20 @@ function Get-LogonHistory
         [Parameter(ParameterSetName='Default')]
         [switch]
         $Today
+
+        , # What logon type to search for
+        [ValidateSet("Local", "Remote")]
+        [string]
+        $Type
     )
 
     Begin
     {
+        Switch($Type){
+            "Local"{$FilterType = $LogonType.Interactive, $LogonType.CachedInteractive}
+            "Remote"{$FilterType = $LogonType.RemoteInteractive}
+        }
+
         $LogonType = @{
             Interactive = 2
             Network = 3
@@ -70,7 +80,7 @@ function Get-LogonHistory
         [datetime]$StartDay = (Get-Date).AddDays( - $PastDays).Date
         [datetime]$StopDay = $StartDay.AddDays($Days).Date
 
-        Write-Verbose "From $ComputerName get Logon events between $StartDay and $StopDay"
+        Write-Verbose "From $ComputerName get Logon event type $FilterType between $StartDay and $StopDay"
     }
     Process
     {
@@ -84,7 +94,11 @@ function Get-LogonHistory
                             EndTime=$StopDay
                         } -ErrorAction Stop
         } catch {
-            Write-Error "$ComputerName cannot be found"
+            switch ($ComputerName)
+            {
+                'localhost' { Write-Error "Must run as an Administrator to acces logs for $ComputerName" }
+                Default {Write-Error "$ComputerName cannot be found"}
+            }
         }
 
         Write-Verbose "Got $($EventLog.count) event(s)"
@@ -108,7 +122,7 @@ function Get-LogonHistory
 
         # Select only "real user at the keyboard" logon types.
         $EventLog |
-            Where logonType -In $LogonType.Interactive, $LogonType.CachedInteractive |
+            Where logonType -In $FilterType |
             Select-Object @{
                     name='Username';
                     expression={ $_.TargetUserName }
