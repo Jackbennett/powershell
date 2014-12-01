@@ -61,6 +61,33 @@ $v = measure-command {
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
+$v = measure-command {
+    if ($host.Name -eq 'ConsoleHost')
+    {
+        Import-Module PSReadline
+    }
+}
+Write-Verbose "$($v.TotalSeconds) seconds - import PSReadline"
+
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function global:prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    if($git){
+        # Reset color, which can be messed up by Enable-GitColors
+        $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+    }
+
+    Write-Host($pwd.Path) -nonewline -ForegroundColor Green
+
+    if($git){
+        Write-VcsStatus
+    }
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    [System.Environment]::NewLine + "$env:USERNAME $ "
+}
+
 function swap-python {
     if($env:path -match 'Python27'){
         $env:Path = $env:path.replace('Python27', 'Python34')
@@ -93,25 +120,6 @@ function touch{
     } else {
         Write-Warning "$name exists"
     }
-}
-
-# Set up a simple prompt, adding the git prompt parts inside git repos
-function global:prompt {
-    $realLASTEXITCODE = $LASTEXITCODE
-
-    if($git){
-        # Reset color, which can be messed up by Enable-GitColors
-        $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
-    }
-
-    Write-Host($pwd.Path) -nonewline -ForegroundColor Green
-
-    if($git){
-        Write-VcsStatus
-    }
-
-    $global:LASTEXITCODE = $realLASTEXITCODE
-    [System.Environment]::NewLine + "$env:USERNAME $ "
 }
 
 function Backup-Profile {
