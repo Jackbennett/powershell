@@ -3,7 +3,12 @@
 # Property ComputerName is depreciated. Use OSDComputerName
 
 $URI = "http://tech-02:5984/macs/"
-$MAC = $TSenv:MACADDRESS001.ToUpper()
+try{
+    $MAC = $TSenv:MACADDRESS001.ToUpper()
+    } catch {
+        Write-Error "Not a task sequence"
+        $MAC = "00:21:CC:67:F0:KK"
+    }
 
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') > $null
 $message = @"
@@ -15,10 +20,7 @@ $MAC
 try {
     $doc = Invoke-WebRequest -Uri ($URI + $MAC) -Method Get -UseBasicParsing
 } catch {
-    # Close the TS UI temporarily
-    $TSProgressUI = New-Object -COMObject Microsoft.SMS.TSProgressUI
-    $TSProgressUI.CloseProgressDialog()
-
+    Remove-Variable doc
     $ComputerName = [Microsoft.VisualBasic.Interaction]::InputBox($message, "Set Computer Name", "Test-01")
     if($ComputerName -notmatch "test-*"){
         $doc = Invoke-WebRequest -UseBasicParsing -Uri ($URI) -Method Post -ContentType 'application/json' -Body (
@@ -38,8 +40,7 @@ if($doc.StatusCode -in 200, 304 ){
 } elseif($doc.StatusCode -eq 404){
     Write-Output "missing"
 } else {
-    Write-Output "Failure: $($doc.StatusCode)"
-    Exit 1
+    Write-Output "Computer Name Not Saved: $ComputerName"
 }
 
 if($ComputerName){
