@@ -96,7 +96,10 @@ function swap-python {
     }
 }
 
-function get-list{
+function get-list(){
+    Param(
+    [switch]$Directory
+    )
 	get-childitem @args | format-wide -autosize
 }
 
