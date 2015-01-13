@@ -4,7 +4,7 @@
 .DESCRIPTION
    Long description
 .EXAMPLE
-   Example of how to use this cmdlet
+   Import-CSV './users.csv' | Format-ActiveLearnUsers | ConvertTo-CSV | Out-File 'Formatted-Users.csv'
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
@@ -20,7 +20,7 @@ function Format-ActiveLearnUsers
         $CSV
         
         , [string]
-        $password = "ChangeMe133"
+        $password = "ChangeMe144"
 
         , [string]
         $Prefix = "UHHS-"

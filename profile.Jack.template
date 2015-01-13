@@ -4,12 +4,17 @@ Param(
     [string]$Store = "ps"
 
     , # Store Root Path
-    [string]$StoreRoot = (Join-Path $HOME 'ps')
+    [string]$StoreRoot = (Join-Path $env:HOMEDRIVE 'ps')
 
     # Verbose output with ". $profile.currentUserAllHosts -Verbose" in a session to view extra information
 )
 
 $Verbose = $VerbosePreference
+$git = $false
+
+if(Get-Command "git" -ErrorAction SilentlyContinue){
+    $git = $true
+}
 
 # ---------- Create the store drive ----------
 $v = measure-command {
@@ -56,7 +61,45 @@ $v = measure-command {
 
 Write-Verbose "$($v.TotalSeconds) seconds - add store to path"
 
-function get-list{
+$v = measure-command {
+    if ($host.Name -eq 'ConsoleHost')
+    {
+        Import-Module PSReadline
+    }
+}
+Write-Verbose "$($v.TotalSeconds) seconds - import PSReadline"
+
+# Set up a simple prompt, adding the git prompt parts inside git repos
+function global:prompt {
+    $realLASTEXITCODE = $LASTEXITCODE
+
+    if($git){
+        # Reset color, which can be messed up by Enable-GitColors
+        $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+    }
+
+    Write-Host($pwd.Path) -nonewline -ForegroundColor Green
+
+    if($git){
+        Write-VcsStatus
+    }
+
+    $global:LASTEXITCODE = $realLASTEXITCODE
+    [System.Environment]::NewLine + "$env:USERNAME $ "
+}
+
+function swap-python {
+    if($env:path -match 'Python27'){
+        $env:Path = $env:path.replace('Python27', 'Python34')
+    } else {
+        $env:Path = $env:path.replace('Python34', 'Python27')
+    }
+}
+
+function get-list(){
+    Param(
+    [switch]$Directory
+    )
 	get-childitem @args | format-wide -autosize
 }
 
@@ -82,21 +125,6 @@ function touch{
     }
 }
 
-# Set up a simple prompt, adding the git prompt parts inside git repos
-function global:prompt {
-    $realLASTEXITCODE = $LASTEXITCODE
-
-    # Reset color, which can be messed up by Enable-GitColors
-    $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
-
-    Write-Host($pwd.ProviderPath) -nonewline -ForegroundColor Green
-
-    Write-VcsStatus
-
-    $global:LASTEXITCODE = $realLASTEXITCODE
-    [System.Environment]::NewLine + "$env:USERNAME $ "
-}
-
 function Backup-Profile {
     $profile = @{
         Path = $profile.CurrentUserAllHosts
@@ -115,7 +143,9 @@ Set-Alias g git
 
 $HOMEPATH = Get-PSDrive -Name $HOME.Trim(':\') | select DisplayRoot
 
-Enable-GitColors
-# Start-SshAgent -Quiet
+if($git){
+    Enable-GitColors
+}
+
 Set-Location "$HOME\src"
 lsa -Directory
