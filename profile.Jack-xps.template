@@ -18,8 +18,18 @@ function git-bash{
     & $string
 }
 function git-server{
+<#
+.Synopsis
+Open a git server for sharing repositories
+.Description
+Common Ports;
+ssh:// - 22
+git:// - Default 9418
+http:// - 80
+https:// - 443
+#>
     Param(
-        $Port = 7000,
+        $Port = 9418,
         $BasePath= 'F:/repo',
         [switch]$EnablePush
     )
@@ -78,6 +88,7 @@ function Backup-Profile {
 Set-Alias sh git-bash
 Set-Alias lsa get-list
 Set-Alias new new-directory
+Set-Alias v vagrant
 Set-Alias g git
 
 Enable-GitColors
