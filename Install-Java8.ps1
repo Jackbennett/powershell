@@ -2,6 +2,9 @@ param (
     [Parameter(Mandatory=$true)]
     [IO.FileInfo]
     $MSI
+
+    , [string]
+    $Name
 )
 
 if (!(Test-Path $MSI.FullName)) {
@@ -31,11 +34,11 @@ try {
 
 # Now the installed version string, if any. win32_product is super slow :(
 # Could maybe check the registry for this key. Need to deal with different x86 and x64 paths.
-[version]$JavaVersion = Get-WmiObject -Class Win32_Product -Filter "Name Like 'Java%'" |
-                            Select -ExpandProperty Version
+[version]$Version = Get-WmiObject -Class Win32_Product -Filter "Name Like '$Name%'" |
+                        Select -ExpandProperty Version
 
 # Compare versions of [version] type and install if needed
-if($JavaVersion -lt $UpdateNumber){
+if($Version -lt $UpdateNumber){
     "run install"
-    Invoke-Expression "msiexec /i $MSI AUTOUPDATE=0 REBOOT=0 WEB_JAVA=1 /qn /lv C:\Install-Java.log"
+    #Invoke-Expression "msiexec /i $MSI AUTOUPDATE=0 REBOOT=0 WEB_JAVA=1 /qn /lv C:\Install-$Name.log"
 }
