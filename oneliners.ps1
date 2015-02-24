@@ -61,3 +61,6 @@ invoke-command -Session $s -ScriptBlock {
 # reset a whole year group password
 Get-ADGroupMember -Identity "Intake 2014" |
     Set-ADAccountPassword -Reset -NewPassword (ConvertTo-SecureString -AsPlainText "password" -Force)
+
+# Strip white space (capital matches the NOT value), force to replace the contents of the existing file, encode so Brackets can open the file
+(get-content .\schedule-time.txt) -match "\S" | Out-File .\schedule-time.txt -Force -Encoding utf8
