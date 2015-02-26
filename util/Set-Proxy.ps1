@@ -55,6 +55,40 @@ function Set-Proxy
 		    git config --global --remove-section http
 		    git config --global --remove-section https
         }
+
+        function notifyAllWindows
+        {
+            #This I don't understand one iota. What's with the numbers?
+            $method = 'SendMessageTimeout_6a057adb_f92f_4e34_bda2_42bc79d05f5c'
+            $type = $method -as [type]
+
+            if($global){
+                if(-not $type){
+                    #import sendmessagetimeout from win32
+$type = Add-Type -pass -Name $method -MemberDefinition @"
+[DllImport("user32", SetLastError = true)]
+public static extern IntPtr SendMessageTimeout(
+    IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam,
+    uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+"@
+                }
+
+                $HWND_BROADCAST = [intptr]0xffff
+                $WM_SETTINGCHANGE = [uint32]0x1a
+                $result = [uintptr]::zero
+                $SMTO_NORMAL = [uint32]0
+
+                #Notify all windows of the envornment change
+                $type::SendMessageTimeout(
+                    $HWND_BROADCAST,
+                    $WM_SETTINGCHANGE,
+                    [uintptr]::zero,
+                    "Environment",
+                    $SMTO_NORMAL,
+                    1000,
+                    [ref]$result)
+            }
+        }
     }
 
     Process
@@ -71,6 +105,10 @@ function Set-Proxy
         }
 
         setProxyConfiguration
+
+        if($global){
+            notifyAllWindows
+        }
 
     }
 }
