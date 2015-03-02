@@ -4,7 +4,7 @@
 RootModule = 'PSReadLine.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0.12'
+ModuleVersion = '1.0.0.13'
 
 # ID used to uniquely identify this module
 GUID = '5714753b-2afd-4492-a5fd-01d9e2cff8b5'
