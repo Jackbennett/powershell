@@ -1,17 +1,31 @@
-function Show-ChildItem(){
+<#
+.Synopsis
+    Insert categories into the list given.
+.EXAMPLE
+    get-childitem -Directory | sort Name | Show-ChildItem | Format-wide -autosize
+
+    .ssh      ~ A ~           apps         ~ B ~      benchmark                                  
+    bin       bkup desktop    brackets     ~ C ~      cmder                       
+#>
+function Show-ChildItem
+{
+    [CmdletBinding()]
+ 
     Param(
-    [switch]$Directory
+        [Parameter(ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        $Name
     )
-	get-childitem @args | sort name | ForEach-Object -Begin {$lastLetter} -Process {
-        if($lastLetter -ne $PSItem.Name[0]){
-            $LastLetter =  $PSItem.Name[0]
-            write-host -NoNewline $PSItem.name[0] -ForegroundColor Red
-            write-host $PSItem.name.substring(1)
-            # hints
-            #"\x1b[31m" ansi
-            # [consoleColor]::Red
-        } else {
-            write-host $PSItem.name
+ 
+    Begin {
+        $lastLetter = '.'
+    }
+ 
+    Process {
+        if($lastLetter -ne $Name.Name[0]) {
+            $LastLetter =  $Name.Name[0].toString().ToUpper()
+            New-Object -TypeName psobject -Property @{ Name = "~ $lastLetter ~" }
         }
-    } | format-wide -autosize
+        $Name | Select-Object 'Name'
+    }
 }
