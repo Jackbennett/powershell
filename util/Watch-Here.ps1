@@ -35,6 +35,10 @@ function Watch-Here
         , # Show events in the console
         [switch]
         $Wait
+
+        , # Include Subdirectories
+        [switch]
+        $Recurse
     )
 
     Begin
@@ -47,7 +51,7 @@ function Watch-Here
     Process
     {
         $Watch = New-Object IO.FileSystemWatcher $Path, $Filter -Property @{
-            IncludeSubdirectories = $true # <-- set this according to your requirements
+            IncludeSubdirectories = $Recurse
             NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite'
         }
 
