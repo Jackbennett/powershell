@@ -52,14 +52,18 @@ function Watch-Here
         }
 
         $handler = Register-ObjectEvent -InputObject $watch -EventName $EventName -SourceIdentifier $EventName -Action {
-            $name = $Event.SourceEventArgs.Name
-            $changeType = $Event.SourceEventArgs.ChangeType
-            $timeStamp = $Event.TimeGenerated
-            Write-Host "$timeStamp`: $changeType the file '$name'"
+            $Name = $Event.SourceEventArgs.Name
+            $Type = $Event.SourceEventArgs.ChangeType
+            $Time = $Event.TimeGenerated
+            Write-Host "$Time`: $Type the file '$Name'"
         }
 
         if($Wait)
         {
+            <#
+            Use try/finally to catch the script being killed with "Ctrl-C" and unregister the event listener.
+            End {} Will not be called when ended this way.
+            #>
             try     { Wait-Event       $EventName }
             finally { Unregister-Event $EventName }
         }
