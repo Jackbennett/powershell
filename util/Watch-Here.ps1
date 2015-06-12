@@ -26,7 +26,6 @@ function Watch-Here
 
     Begin
     {
-        Unregister-Event -SourceIdentifier FileCreated
     }
     Process
     {
@@ -44,10 +43,10 @@ function Watch-Here
             Write-Host "The file '$name' was $changeType at $timeStamp"
         }
 
-        Wait-Event -SourceIdentifier FileCreated
+        try     { Wait-Event       -SourceIdentifier FileCreated }
+        finally { Unregister-Event -SourceIdentifier FileCreated }
     }
     End
     {
-        Unregister-Event -SourceIdentifier FileCreated
     }
 }
