@@ -17,11 +17,16 @@ function Watch-Here
         # Specifies the path to watch
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Path = ".",
+        $Path = "."
 
-        # Specify a filesystem filter script
+        , # Specify a filesystem filter script
         [string]
         $Filter = "*"
+
+        , # Event Type
+        [validSet("Created", "Changed", "Renamed", "Deleted")]
+        [string]
+        $EventName = "Created"
     )
 
     Begin
@@ -34,7 +39,7 @@ function Watch-Here
             NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite'
         }
 
-        $onCreated = Register-ObjectEvent -InputObject $watch -EventName "Created" -SourceIdentifier FileCreated -Action {
+        $handler = Register-ObjectEvent -InputObject $watch -EventName $EventName -SourceIdentifier $EventName -Action {
             Write-Debug $event
             $path = $Event.SourceEventArgs.FullPath
             $name = $Event.SourceEventArgs.Name
@@ -43,8 +48,8 @@ function Watch-Here
             Write-Host "The file '$name' was $changeType at $timeStamp"
         }
 
-        try     { Wait-Event       -SourceIdentifier FileCreated }
-        finally { Unregister-Event -SourceIdentifier FileCreated }
+        try     { Wait-Event       $EventName }
+        finally { Unregister-Event $EventName }
     }
     End
     {
