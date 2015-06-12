@@ -4,9 +4,14 @@
 .DESCRIPTION
    Watch a target path for new files and log to the console
 .EXAMPLE
-    Watch-Here
+    Watch-Here -Wait
     The file 'test - Copy.txt' was Created at 06/12/2015 11:13:08
     The file 'New Text Document.txt' was Created at 06/12/2015 11:13:20
+.EXAMPLE
+    Watch-Here
+    Id   Name       PSJobTypeName   State         HasMoreData   Location   Command
+    --   ----       -------------   -----         -----------   --------   -------
+    28   Created                    NotStarted    False                    ...
 #>
 function Watch-Here
 {
@@ -26,10 +31,18 @@ function Watch-Here
         [ValidateSet("Created", "Changed", "Renamed", "Deleted")]
         [string]
         $EventName = "Created"
+
+        , # Show events in the console
+        [switch]
+        $Wait
     )
 
     Begin
     {
+        $event = Get-EventSubscriber -SourceIdentifier $EventName -ErrorAction SilentlyContinue
+        if($event){
+            Unregister-Event -SourceIdentifier $EventName -Confirm
+        }
     }
     Process
     {
@@ -45,10 +58,14 @@ function Watch-Here
             Write-Host "$timeStamp`: $changeType the file '$name'"
         }
 
-        try     { Wait-Event       $EventName }
-        finally { Unregister-Event $EventName }
+        if($Wait)
+        {
+            try     { Wait-Event       $EventName }
+            finally { Unregister-Event $EventName }
+        }
     }
     End
     {
+        Write-Output $handler
     }
 }
