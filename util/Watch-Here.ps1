@@ -11,7 +11,6 @@
 function Watch-Here
 {
     [CmdletBinding()]
-    [OutputType([int])]
     Param
     (
         # Specifies the path to watch
@@ -24,7 +23,7 @@ function Watch-Here
         $Filter = "*"
 
         , # Event Type
-        [validSet("Created", "Changed", "Renamed", "Deleted")]
+        [ValidateSet("Created", "Changed", "Renamed", "Deleted")]
         [string]
         $EventName = "Created"
     )
@@ -34,7 +33,7 @@ function Watch-Here
     }
     Process
     {
-        $Watch = New-Object IO.FileSystemWatcher $Path, $filter -Property @{
+        $Watch = New-Object IO.FileSystemWatcher $Path, $Filter -Property @{
             IncludeSubdirectories = $true # <-- set this according to your requirements
             NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite'
         }
