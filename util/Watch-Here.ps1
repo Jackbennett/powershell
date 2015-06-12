@@ -1,12 +1,12 @@
 <#
 .Synopsis
-   Short description
+   Watch for new files
 .DESCRIPTION
-   Long description
+   Watch a target path for new files and log to the console
 .EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+    Watch-Here
+    The file 'test - Copy.txt' was Created at 06/12/2015 11:13:08
+    The file 'New Text Document.txt' was Created at 06/12/2015 11:13:20
 #>
 function Watch-Here
 {
@@ -14,12 +14,12 @@ function Watch-Here
     [OutputType([int])]
     Param
     (
-        # Param1 help description
+        # Specifies the path to watch
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         $Path = ".",
 
-        # Param2 help description
+        # Specify a filesystem filter script
         [string]
         $Filter = "*"
     )
