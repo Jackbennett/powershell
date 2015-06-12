@@ -40,12 +40,10 @@ function Watch-Here
         }
 
         $handler = Register-ObjectEvent -InputObject $watch -EventName $EventName -SourceIdentifier $EventName -Action {
-            Write-Debug $event
-            $path = $Event.SourceEventArgs.FullPath
             $name = $Event.SourceEventArgs.Name
             $changeType = $Event.SourceEventArgs.ChangeType
             $timeStamp = $Event.TimeGenerated
-            Write-Host "The file '$name' was $changeType at $timeStamp"
+            Write-Host "$timeStamp`: $changeType the file '$name'"
         }
 
         try     { Wait-Event       $EventName }
