@@ -44,12 +44,12 @@ function Get-LogonHistory
         , # Just get todays records
         [Parameter(ParameterSetName='Default')]
         [switch]
-        $Today
+        $Today = $True
 
         , # What logon type to search for
         [ValidateSet("Local", "Remote")]
         [string]
-        $Type
+        $Type = "local"
     )
 
     Begin
@@ -77,8 +77,8 @@ function Get-LogonHistory
         }
 
         # Use the .Date property to reset the time to 00:00:00
-        [datetime]$StartDay = (Get-Date).AddDays( - $PastDays).Date
-        [datetime]$StopDay = $StartDay.AddDays($Days).Date
+        [datetime]$StartDay = (Get-Date).AddDays( - $PastDays)
+        [datetime]$StopDay = $StartDay.AddDays($Days)
 
         Write-Verbose "From $ComputerName get Logon event type $FilterType between $StartDay and $StopDay"
     }
@@ -88,10 +88,10 @@ function Get-LogonHistory
         {
             # Grab the events from a remote computer
             $EventLog = Get-WinEvent -ComputerName $ComputerName -FilterHashtable @{
-                            Logname='Security';
-                            Id=4624;
-                            StartTime=$StartDay;
-                            EndTime=$StopDay
+                            Logname = 'Security';
+                            Id = 4624;
+                            StartTime = $StartDay.toShortDateString();
+                            EndTime = $StopDay.toShortDateString();
                         } -ErrorAction Stop
         } catch {
             switch ($ComputerName)
