@@ -77,8 +77,8 @@ function Get-LogonHistory
         }
 
         # Use the .Date property to reset the time to 00:00:00
-        [datetime]$StartDay = (Get-Date).AddDays( - $PastDays)
-        [datetime]$StopDay = $StartDay.AddDays($Days)
+        [datetime]$StartDay = (Get-Date).AddDays( - $PastDays).Date
+        [datetime]$StopDay = $StartDay.AddDays($Days).Date
 
         Write-Verbose "From $ComputerName get Logon event type $FilterType between $StartDay and $StopDay"
     }
