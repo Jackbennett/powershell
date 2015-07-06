@@ -54,11 +54,6 @@ function Get-LogonHistory
 
     Begin
     {
-        Switch($Type){
-            "Local"{$FilterType = $LogonType.Interactive, $LogonType.CachedInteractive}
-            "Remote"{$FilterType = $LogonType.RemoteInteractive}
-        }
-
         $LogonType = @{
             Interactive = 2
             Network = 3
@@ -69,6 +64,11 @@ function Get-LogonHistory
             NewCredentials = 9
             RemoteInteractive = 10
             CachedInteractive = 11
+        }
+
+        Switch($Type){
+            "Local"{$FilterType = $LogonType.Interactive, $LogonType.CachedInteractive}
+            "Remote"{$FilterType = $LogonType.RemoteInteractive}
         }
 
         if($Today)
