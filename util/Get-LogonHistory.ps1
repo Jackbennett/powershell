@@ -113,10 +113,8 @@ function Get-LogonHistory
 
             ForEach ($data in $ShortName.Data)
             {
-                write-debug ("Name: " + $data.name)
-                Write-debug ("    : " + $data.'#text')
-                $Event |
-                    Add-Member -Force -NotePropertyName $data.name -NotePropertyValue $data.'#text'
+                Write-Debug "$($data.name) : $($data.'#text')"
+                $Event | Add-Member -NotePropertyName $data.name -NotePropertyValue $data.'#text' -Force
             }
         }
 
