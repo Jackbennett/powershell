@@ -44,7 +44,7 @@ function Get-LogonHistory
         , # Just get todays records
         [Parameter(ParameterSetName='Default')]
         [switch]
-        $Today = $True
+        $Today
 
         , # What logon type to search for
         [ValidateSet("Local", "Remote")]
