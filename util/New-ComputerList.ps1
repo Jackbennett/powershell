@@ -40,9 +40,6 @@ function New-ComputerList
 
     Begin
     {
-        # Create a list to add computer names to
-        $computerName = New-Object System.Collections.Generic.List[string]
-
         #What's the fully qualified domain name in case we need it
         $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().name
     }
@@ -59,28 +56,17 @@ function New-ComputerList
             foreach($c in $computer){
                 Write-Verbose "adding computer: $c to the room list"
                 # Add this string to our list of computernames with a fully qualified domain name
-                $computerName.Add( "$r`PC$( $c.toString('00') )" )
+                $computerName = "$r`PC$( $c.toString('00') )"
+
+                if($FQDN)
+                {
+                    Write-Verbose ('Adding FQDN [' + $domain + '] to ' + $computerName + ' computer')
+                    $computerName += ".$domain"
+                }
+
+                New-Object psobject |
+                    Add-Member -MemberType NoteProperty -Name "ComputerName" -Value $computerName -PassThru
             }
         }
-
-        if($FQDN)
-        {
-            Write-Verbose ('Adding FQDN [' + $domain + '] to all ' + $computerName.Count + ' computer names')
-            for($i = 0; $i -lt $computerName.Count; ++$i)
-            {
-                $computerName[$i] += ".$domain"
-            }
-        }
-    }
-
-    End
-    {
-        # Return the list of computer names to the pipeline
-        Write-Verbose "Returning the list to pipeline output"
-
-        $out = New-Object psobject
-        $out = Add-Member -InputObject $out -MemberType NoteProperty -Name "ComputerName" -Value $computerName -PassThru
-
-        Write-Output $out
     }
 }
