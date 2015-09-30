@@ -59,7 +59,7 @@ function New-ComputerList
             foreach($c in $computer){
                 Write-Verbose "adding computer: $c to the room list"
                 # Add this string to our list of computernames with a fully qualified domain name
-                $computerName.Add( "$r-$( $c.toString('00') )" )
+                $computerName.Add( "$r`PC$( $c.toString('00') )" )
             }
         }
 
