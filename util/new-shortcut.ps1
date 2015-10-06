@@ -14,11 +14,11 @@ function new-shortcut
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
     (
-        # Param1 help description
+        # Use an existing shortcut to update the target.
         [Parameter(Mandatory=$true,
                    Position=0)]
         [string]
-        $source
+        $template
 
         , # If no value is set, append " - copy" to the source file
         [string]
@@ -32,7 +32,7 @@ function new-shortcut
         [string]
         $targetPath = "C:\Program Files\"
 
-        , #
+        , # This is the "Comment" field under "Properties"
         [string]
         $description = "New Shortcut Link"
 
@@ -48,7 +48,7 @@ function new-shortcut
         $shortcut = $shell.CreateShortcut($destination)  ## Open the lnk
 
         $shortcut.TargetPath = $targetPath
-        $shortcut.Description = $description  ## This is the "Comment" field under Right-click > Properties
+        $shortcut.Description = $description
         $shortcut.Save()
     }
     End
