@@ -21,12 +21,14 @@ function new-shortcut
         $template
 
         , # If no value is set, append " - copy" to the source file
+        [Parameter(Mandatory=$true)]
         [string]
-        $newName =  (split-path -leaf (resolve-Path $source)).trimEnd(".lnk") + " - copy.lnk"
+        $newName
 
         , # If no path is set, use the same directory as the source
         [string]
-        $destination = (split-path (resolve-Path $source)) + "\$newName.lnk"
+        [Parameter(Mandatory=$true)]
+        $destination
 
         , #
         [string]
@@ -44,7 +46,7 @@ function new-shortcut
     }
     Process
     {
-        Copy-Item $source $destination  ## Get the lnk we want to use as a template
+        Copy-Item $template $destination  ## Get the lnk we want to use as a template
         $shortcut = $shell.CreateShortcut($destination)  ## Open the lnk
 
         $shortcut.TargetPath = $targetPath
