@@ -16,26 +16,25 @@ function new-shortcut
     (
         # Use an existing shortcut to update the target.
         [Parameter(Mandatory=$true,
-                   Position=0)]
+                   Position=0,
+                   ValueFromPipelineByPropertyName=$true)]
         [string]
         $template
 
-        , # If no value is set, append " - copy" to the source file
-        [Parameter(Mandatory=$true)]
-        [string]
-        $newName
-
         , # If no path is set, use the same directory as the source
         [string]
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,
+        ValueFromPipelineByPropertyName=$true)]
         $destination
 
         , #
         [string]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         $targetPath = "C:\Program Files\"
 
         , # This is the "Comment" field under "Properties"
         [string]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         $description = "New Shortcut Link"
 
     )
