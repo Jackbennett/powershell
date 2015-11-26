@@ -23,26 +23,25 @@ function Start-Delprof
                    Position=0)]
         [string[]]
         $computerName = 'localhost'
+
+        , # Path to delprof.exe Executable
+        [Paramter(Mandatory=$true)]
+        [string]
+        $ExecutablePath
     )
 
     Begin
     {
-        if((get-command -Name Start-Delprof).ModuleName){
-            $ModuleName = (get-command -Name Start-Delprof).ModuleName
-        } else {
-            $ModuleName = '.'
-        }
-        
-        if( -not (test-path "PS:\$ModuleName\bin\DelProf2.exe") )
-        {
-            throw "Missing binary DelProf2.exe in PS:"
+        try{ test-path $ExecutablePath }
+        catch {
+            throw "Missing binary DelProf2.exe"
         }
     }
     Process
     {
         foreach ($name in $computerName)
         {
-            start-job -Name $name -ArgumentList $name,$ModuleName -ScriptBlock {
+            start-job -Name $name -ArgumentList $name,$ExecutablePath -ScriptBlock {
                Invoke-Expression -Command "& 'PS:\$($args[1])\bin\DelProf2.exe /u /q /i /c:\\$($args[0])'"
             }
         }
