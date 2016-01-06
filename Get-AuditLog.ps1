@@ -3,7 +3,7 @@ $outStream = (new-item -ItemType File -Path "C:\Temp\4663Events-$((get-date -For
 $ns = @{e = "http://schemas.microsoft.com/win/2004/08/events/event"}
 $StartDate = Get-Date
 $EndDate = $StartDate.AddDays(1)
-
+$xml = New-Object -TypeName XML
 $AccessMaskLookup = @{
  0x1     = 'Read Data / List Directory'
  0x2     = 'Write Data / Add File'
@@ -24,7 +24,8 @@ foreach ($svr in $server){
     }
 
     foreach($evt in $evts){
-        $xml = [xml]$evt.ToXml()
+
+        $xml.loadXML($evt.ToXml())
 
         $SubjectUserName = Select-Xml -Xml $xml -Namespace $ns -XPath "//e:Data[@Name='SubjectUserName']/text()" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
 
@@ -38,10 +39,8 @@ foreach ($svr in $server){
 
         $outStream.WriteLine("$($svr),$($evt.id),$($evt.TimeCreated),$SubjectUserName,$ObjectName,$AccessMask")
 
-        Write-Verbose $svr
-        Write-Verbose "$($evt.id), $($evt.TimeCreated), $SubjectUserName, $ObjectName, $AccessMask"
-
     }
+
 }
 
 $outStream.close()
