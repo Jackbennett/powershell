@@ -1,10 +1,15 @@
-﻿$server = "bhs-fs02"
-$outStream = (new-item -ItemType File -Path "C:\Temp\4663Events-$((get-date -Format s).Replace(':', '.')).csv").AppendText()
-$ns = @{e = "http://schemas.microsoft.com/win/2004/08/events/event"}
-$StartDate = Get-Date
-$EndDate = $StartDate.AddDays(1)
+﻿function Get-AuditLog{
+[CmdletBinding(DefaultParameterSetName='Default')]
+Param(
+    $server = "bhs-fs02"
+    ,$Path = "C:\Temp\4663Events-$((get-date -Format s).Replace(':', '.')).csv"
+    ,$StartDate = (get-date)
+    ,$EndDate = (get-date).AddDays(1)
+)
+
+$ns = @{e="http://schemas.microsoft.com/win/2004/08/events/event"}
 $xml = New-Object -TypeName XML
-$AccessMaskLookup = @{
+$AccessLookup = @{
  0x1     = 'Read Data / List Directory'
  0x2     = 'Write Data / Add File'
  0x4     = 'Append Data / Create Subdirectory'
@@ -13,15 +18,22 @@ $AccessMaskLookup = @{
  0x100   = 'Change file Attributes'
  0x10000 = 'Delete'
 }
-$outStream.WriteLine("ServerName,EventID,TimeCreated,UserName,File_or_Folder,AccessMask")
+
+$outStream = (new-item -ItemType File -Path $Path).AppendText()
+$outStream.WriteLine("Server,EventID,Time,UserName,Path,AccessMask")
 
 foreach ($svr in $server){
+
+    $queryTime = measure-command {
     $evts = Get-WinEvent -computer $svr -Oldest -FilterHashtable @{
-        logname = "security";
-        id = "4663";
+        ProviderName = "Microsoft-Windows-Security-Auditing";
+        ID = "4663";
         StartTime = $StartDate.toShortDateString();
         EndTime = $EndDate.toShortDateString();
     }
+    }
+
+    Write-Verbose "Found $($evts.Length) events in $($queryTime.TotalSeconds) seconds."
 
     foreach($evt in $evts){
 
@@ -33,9 +45,12 @@ foreach ($svr in $server){
 
         $AccessMask = Select-Xml -Xml $xml -Namespace $ns -XPath "//e:Data[@Name='AccessMask']/text()" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
 
-        if($AccessMaskLookup[[convert]::ToInt32($AccessMask,16)]){
-            $AccessMask = $AccessMaskLookup[[convert]::ToInt32($AccessMask,16)]
+        $Mask = [convert]::ToInt32($AccessMask,16)
+
+        if($AccessLookup[$Mask]){
+            $AccessMask = $AccessLookup[$Mask]
         }
+
 
         $outStream.WriteLine("$($svr),$($evt.id),$($evt.TimeCreated),$SubjectUserName,$ObjectName,$AccessMask")
 
@@ -44,3 +59,5 @@ foreach ($svr in $server){
 }
 
 $outStream.close()
+
+}
