@@ -1,16 +1,48 @@
 ﻿New-Module {
     <#
 .Synopsis
-   Print a line of whatever data comes in the Serial Port. Read Only.
+   Create a new serial port to read or write to.
 .DESCRIPTION
-   Echo all incoming data on the serial port.
-   
-   I want to wrap this with node and use this as a dev module instead of 
-   installing VS 2013 to just compile nodeserialport
-.EXAMPLE
-    New-SerialPort | Show-SerialPort
 
-    prints data to the host as it comes in
+.EXAMPLE
+    $myport = New-SerialPort
+
+    Create a new port with a .net event subscribed to the incoming data
+.EXAMPLE
+    New-SerialPort -outvariable port -Name Serial -number 5
+
+Create a new port whislt seing it's configuration.
+
+    Identifier             : Serial5
+    BaseStream             :
+    BaudRate               : 9600
+    BreakState             :
+    BytesToWrite           :
+    BytesToRead            :
+    CDHolding              :
+    CtsHolding             :
+    DataBits               : 8
+    DiscardNull            : False
+    DsrHolding             :
+    DtrEnable              : False
+    Encoding               : System.Text.ASCIIEncoding
+    Handshake              : None
+    IsOpen                 : False
+    NewLine                :
+
+    Parity                 : None
+    ParityReplace          : 63
+    PortName               : com3
+    ReadBufferSize         : 4096
+    ReadTimeout            : 1000
+    ReceivedBytesThreshold : 1
+    RtsEnable              : False
+    StopBits               : One
+    WriteBufferSize        : 2048
+    WriteTimeout           : -1
+    Site                   :
+    Container              :
+
 #>
     function New-SerialPort {
         [CmdletBinding()]
@@ -19,43 +51,27 @@
         (
             # Event Identifier
             [Parameter()]
-            [ValidatePattern("[a-z]*")]
+            [ValidatePattern("[a-zA-Z]\d")]
             [String]
-            $identifier = "Serial"
-
-            , # Event Identifier
-            [Parameter()]
-            [ValidatePattern("[a-z]*")]
-            [String]
-            $name = "COM3"
-
-            # Q. Can I force the cmdletBindings() -outvariable to be set?
-            # This does not work, Didn't think it would
-            #   , # Force precence of outVaraible
-            #   [Parameter(Mandatory=$true)]
-            #   $OutVariable
+            $Name = "COM3"
         )
         $error.Clear()
 
-        # Q. How can I get if there's already an existing instance and not do this?
-        $port = InstancePort -Name $name
+        if (Get-Serialport -Name "$Name $Number") {
+            throw "Name already exists, use Get-SerialPort"
+        }
 
-        # Print data only when recieved, No polling the port that's crazy talk.
-        $obj = Register-ObjectEvent `
-            -InputObject $port `
-            -EventName "DataReceived" `
-            -SourceIdentifier $port.identifier `
-            -ErrorAction stop
+        $port = InstancePort -Name $Name
 
-        if (-not $error) {
-            Write-Output -InputObject $port
+        if ($port) {
+            # Print data only when recieved, No polling the port that's crazy talk.
+            Register-ObjectEvent -InputObject $port -EventName "DataReceived" -SourceIdentifier $Name > $null
         }
         else {
-            Unregister-Event $port.identifier
-            foreach ($e in $error.ToArray()) {
-                Write-Error $e
-            }
+            throw "Port is not defined"
         }
+
+        $port | Write-Output
     }
 
     function Get-SerialPort {
@@ -66,18 +82,28 @@
             # Name of port to find, default all
             [Parameter()]
             [string]
-            $port
+            $name = '*'
         )
 
         $real = [System.IO.Ports.SerialPort]::getportnames() |
             ForEach-Object {
-            new-object -TypeName PSCustomObject -Property @{"type" = "Physical"; "name" = $psitem.PortName; "port" = $psitem}
+            new-object -TypeName PSCustomObject -Property @{
+                "type" = "Physical"
+                "name" = $psitem.PortName
+                "port" = $psitem
+            }
         }
 
-        $virtual = Get-EventSubscriber -SourceIdentifier "Serial*" |
+        # TODO: implement some kind of virtual port
+        # Wrote all of this without testing if you can open a port that doesn't exist in hardware.
+        $virtual = Get-EventSubscriber -SourceIdentifier $name -ErrorAction SilentlyContinue |
             Select-Object -ExpandProperty SourceObject |
             ForEach-Object {
-            new-object -TypeName PSCustomObject -Property @{"type" = "Virtual"; "name" = $psitem.PortName; "port" = $psitem}
+            new-object -TypeName PSCustomObject -Property @{
+                "type" = "Virtual"
+                "name" = $psitem.PortName
+                "port" = $psitem
+            }
         }
 
         $real + $virtual | Write-Output
@@ -85,43 +111,52 @@
     }
 
     function Show-SerialPort {
-        [CmdletBinding()]
+        [CmdletBinding(DefaultParameterSetName = "Name")]
         [OutputType([string])]
         Param
         (
             # Serial Port Object
-            [Parameter(Mandatory = $true,
+            [Parameter(ParameterSetName = "Object",
+                Mandatory = $true,
+                Position = 0,
                 ValueFromPipeline = $true,
                 ValueFromPipelineByPropertyName = $true)]
             [System.IO.Ports.SerialPort]
-            $port
+            $Port
+
+            , # Port Name
+            [Parameter(ParameterSetName = "Name",
+                Mandatory = $true,
+                Position = 0,
+                ValueFromPipeline = $true,
+                ValueFromPipelineByPropertyName = $true)]
+            [string]
+            $Name
         )
 
-        # Q. wat? new-serialport -outvariable p 
-        # Show-SerialPort : Cannot process argument transformation on parameter 'port'. Cannot convert the "System.Collections.ArrayList" value of type "System.Collections.ArrayList" to type "System.IO.Ports.SerialPort".
-        # At line:1 char:23
-        # + Show-SerialPort -port $p
-        # +                       ~~
-        # + CategoryInfo          : InvalidData: (:) [Show-SerialPort], ParameterBindingArgumentTransformationException
-        # + FullyQualifiedErrorId : ParameterArgumentTransformationError,Show-SerialPort
+        if ($Name) {
+            $port = Get-SerialPort -Name $Name |
+                Where-Object type -eq "Physical" |
+                Select-Object -ExpandProperty port
+        }
 
+        if (-not $port) {
+            throw "No physical port found to open."
+        }
 
-        Write-Verbose "Open port for reading"
-        Write-verbose ("Is prot open? " + $port.isOpen)
+        Write-verbose ("Current port open status: " + $port.isOpen)
         if ( -not $port.isOpen) { $port.open() }
 
         Write-Verbose "Waiting on data"
-        Write-Output $port | gm
 
-        Wait-Event $port.identifier -Timeout ($port.ReadTimeout / 1000)
+        while ($true) {
+            Wait-Event -SourceIdentifier $port.portname -Timeout ($port.ReadTimeout / 1000)
+        }
 
-        # Q. How do I catch the difference in this?
-        "data or timeout?"
+        # TODO: catch the difference between data or timeout
 
-        # Why does this just loop the same event output 
+        # Why does this just loop the same event output
         Write-Output ($port.ReadExisting())
-
-        Show-SerialPort($port)
     }
 
     function Remove-SerialPort {
@@ -134,7 +169,7 @@
                 Mandatory = $true,
                 ValueFromPipeline = $true,
                 ValueFromPipelineByPropertyName = $true)]
-            [System.IO.Ports.SerialPort]
+            [System.IO.Ports.SerialPort[]]
             $port
 
             , # Remove all events in log
@@ -142,24 +177,26 @@
             $clean
         )
 
-        "Clean up connections"
-        # Stop Listening to data
+        Process {
+            Write-Verbose "Stop Listening to data"
+            Write-Verbose "$($port.portname) status: $($port.isOpen)"
+            $port.Close()
 
-        Write-host $port.isOpen
-        $port.Close()
-        # Free the resources just to be sure it's safely unbound for sucessive runs of the script
-        $port.Dispose()
-        # Dispose of the event handler to make sure we're all clean
-        Unregister-Event $port.identifier -ErrorAction SilentlyContinue
+            # Free the resources just to be sure it's safely unbound for sucessive runs of the script
+            $port.Dispose()
 
-        switch ($clean) {
-            $true {
-                Remove-Event -SourceIdentifier $port.identifier -ErrorAction SilentlyContinue
+            # Dispose of the event handler to make sure we're all clean
+            Unregister-Event $port.portname -ErrorAction SilentlyContinue
+            switch ($clean) {
+                $true {
+                    Remove-Event -SourceIdentifier $port.portName -ErrorAction SilentlyContinue
+                }
+                Default {}
             }
-            Default {}
+            Write-Verbose "Event count: $(get-event | measure | select -expandproperty count)"
         }
-        Write-Output "Event count: " (get-event | measure | select count)
-        Write-Output "Subscribers: " (Get-EventSubscriber | select SourceIdentifier)
+
+
 
     }
 
@@ -168,15 +205,7 @@
         [OutputType([System.IO.Ports.SerialPort])]
         Param
         (
-            # Event Identifier
-            [Parameter()]
-            [ValidatePattern("[a-z]*")]
-            [String]
-            $identifier = "Serial"
-
-            , # Port Name
-            [Parameter(position = 0)]
-            [ValidatePattern("[a-z]*")]
+            # Port Name
             [String]
             $name = "COM3"
 
@@ -195,8 +224,6 @@
 
         $port = New-Object system.io.ports.serialport $name, $BaudRate, $ParityBit, $DataBits, $StopBit
         $port.ReadTimeout = 1000 # milliseconds
-    
-        $port | Add-Member -MemberType "NoteProperty" -Name "identifier" -Value "Serial"
 
         Write-Output $port
 
