@@ -9,11 +9,10 @@
 
     Create a new port with a .net event subscribed to the incoming data
 .EXAMPLE
-    New-SerialPort -outvariable port -Name Serial -number 5
+    New-SerialPort -outvariable port -Name COM5
 
 Create a new port whislt seing it's configuration.
 
-    Identifier             : Serial5
     BaseStream             :
     BaudRate               : 9600
     BreakState             :
@@ -32,7 +31,7 @@ Create a new port whislt seing it's configuration.
 
     Parity                 : None
     ParityReplace          : 63
-    PortName               : com3
+    PortName               : com5
     ReadBufferSize         : 4096
     ReadTimeout            : 1000
     ReceivedBytesThreshold : 1
@@ -57,7 +56,7 @@ Create a new port whislt seing it's configuration.
         )
         $error.Clear()
 
-        if (Get-Serialport -Name "$Name $Number") {
+        if (Get-Serialport -Name $Name) {
             throw "Name already exists, use Get-SerialPort"
         }
 
