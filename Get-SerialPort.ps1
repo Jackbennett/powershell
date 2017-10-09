@@ -11,8 +11,7 @@
 
     prints data to the host as it comes in
 #>
-function New-SerialPort
-{
+function New-SerialPort {
     [CmdletBinding()]
     [OutputType([System.IO.Ports.SerialPort])]
     Param
@@ -29,11 +28,11 @@ function New-SerialPort
         [String]
         $name = "COM3"
 
-     # Q. Can I force the cmdletBindings() -outvariable to be set?
-     # This does not work, Didn't think it would
-     #   , # Force precence of outVaraible
-     #   [Parameter(Mandatory=$true)]
-     #   $OutVariable
+        # Q. Can I force the cmdletBindings() -outvariable to be set?
+        # This does not work, Didn't think it would
+        #   , # Force precence of outVaraible
+        #   [Parameter(Mandatory=$true)]
+        #   $OutVariable
     )
     $error.Clear()
 
@@ -42,76 +41,78 @@ function New-SerialPort
 
     # Print data only when recieved, No polling the port that's crazy talk.
     $obj = Register-ObjectEvent `
-            -InputObject $port `
-            -EventName "DataReceived" `
-            -SourceIdentifier $port.identifier `
-            -ErrorAction stop
+        -InputObject $port `
+        -EventName "DataReceived" `
+        -SourceIdentifier $port.identifier `
+        -ErrorAction stop
 
-    if(-not $error)
-    {
+    if (-not $error) {
         Write-Output -InputObject $port
-    } else {
+    }
+    else {
         Unregister-Event $port.identifier
-        foreach($e in $error.ToArray())
-        {
+        foreach ($e in $error.ToArray()) {
             Write-Error $e
         }
     }
 }
 
-function Get-SerialPort
-{
+function Get-SerialPort {
     [CmdletBinding()]
     [OutputType([System.IO.Ports.SerialPort])]
     Param
     (
-        # Return this port object
+        # Name of port to find, default all
         [Parameter()]
         [string]
         $port
     )
 
-    # Q. Same Q as in New-SerialPort, can I fetch an existing instance if new-... has already been run?
-
-    if($port)
-    {
-        InstancePort $port | Write-Output
-    } else {
-        Write-Output ([System.IO.Ports.SerialPort]::getportnames())
+    $real = [System.IO.Ports.SerialPort]::getportnames() |
+        ForEach-Object {
+        new-object -TypeName PSCustomObject -Property @{"type" = "Physical"; "name" = $psitem.PortName; "port" = $psitem}
     }
+
+    $virtual = Get-EventSubscriber -SourceIdentifier "Serial*" |
+        Select-Object -ExpandProperty SourceObject |
+        ForEach-Object {
+        new-object -TypeName PSCustomObject -Property @{"type" = "Virtual"; "name" = $psitem.PortName; "port" = $psitem}
+    }
+
+    $real + $virtual | Write-Output
+
 }
 
-function Show-SerialPort
-{
+function Show-SerialPort {
     [CmdletBinding()]
     [OutputType([string])]
     Param
     (
         # Serial Port Object
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [System.IO.Ports.SerialPort]
         $port
     )
 
-# Q. wat? new-serialport -outvariable p 
-# Show-SerialPort : Cannot process argument transformation on parameter 'port'. Cannot convert the "System.Collections.ArrayList" value of type "System.Collections.ArrayList" to type "System.IO.Ports.SerialPort".
-# At line:1 char:23
-# + Show-SerialPort -port $p
-# +                       ~~
-# + CategoryInfo          : InvalidData: (:) [Show-SerialPort], ParameterBindingArgumentTransformationException
-# + FullyQualifiedErrorId : ParameterArgumentTransformationError,Show-SerialPort
+    # Q. wat? new-serialport -outvariable p 
+    # Show-SerialPort : Cannot process argument transformation on parameter 'port'. Cannot convert the "System.Collections.ArrayList" value of type "System.Collections.ArrayList" to type "System.IO.Ports.SerialPort".
+    # At line:1 char:23
+    # + Show-SerialPort -port $p
+    # +                       ~~
+    # + CategoryInfo          : InvalidData: (:) [Show-SerialPort], ParameterBindingArgumentTransformationException
+    # + FullyQualifiedErrorId : ParameterArgumentTransformationError,Show-SerialPort
 
 
     Write-Verbose "Open port for reading"
     Write-verbose ("Is prot open? " + $port.isOpen)
-    if( -not $port.isOpen) { $port.open() }
+    if ( -not $port.isOpen) { $port.open() }
 
     Write-Verbose "Waiting on data"
     Write-Output $port | gm
 
-    Wait-Event $port.identifier -Timeout ($port.ReadTimeout/1000)
+    Wait-Event $port.identifier -Timeout ($port.ReadTimeout / 1000)
 
     # Q. How do I catch the difference in this?
     "data or timeout?"
@@ -122,17 +123,16 @@ function Show-SerialPort
     Show-SerialPort($port)
 }
 
-function Remove-SerialPort
-{
+function Remove-SerialPort {
     [CmdletBinding()]
     [OutputType([PSObject])]
     Param
     (
         # Serial port reference
-        [Parameter(Position=0,
-                   Mandatory=$true,
-                   ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Position = 0,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [System.IO.Ports.SerialPort]
         $port
 
@@ -151,8 +151,7 @@ function Remove-SerialPort
     # Dispose of the event handler to make sure we're all clean
     Unregister-Event $port.identifier -ErrorAction SilentlyContinue
 
-    switch ($clean)
-    {
+    switch ($clean) {
         $true {
             Remove-Event -SourceIdentifier $port.identifier -ErrorAction SilentlyContinue
         }
@@ -163,8 +162,7 @@ function Remove-SerialPort
 
 }
 
-function instancePort()
-{
+function instancePort() {
     [CmdletBinding()]
     [OutputType([System.IO.Ports.SerialPort])]
     Param
@@ -176,7 +174,7 @@ function instancePort()
         $identifier = "Serial"
 
         , # Port Name
-        [Parameter(position=0)]
+        [Parameter(position = 0)]
         [ValidatePattern("[a-z]*")]
         [String]
         $name = "COM3"
@@ -194,7 +192,7 @@ function instancePort()
         $StopBit = "one"
     )
 
-    $port = New-Object system.io.ports.serialport $name,$BaudRate,$ParityBit,$DataBits,$StopBit
+    $port = New-Object system.io.ports.serialport $name, $BaudRate, $ParityBit, $DataBits, $StopBit
     $port.ReadTimeout = 1000 # milliseconds
     
     $port | Add-Member -MemberType "NoteProperty" -Name "identifier" -Value "Serial"
